@@ -982,7 +982,6 @@ class UnrootedGraph(object):
                 q = pk.shape[1]
                 if self.log2:
                     t1 = numexpr.evaluate('sum(2**pk - 1, 1)')/q
-                    print t1.shape, pk.shape
                     if len(t1.shape) > 1:
                         t1 = t1[0]
                     pm[k, :] = numexpr.evaluate('log1p(t1)')/0.693147
