@@ -421,7 +421,7 @@ class Preprocess(object):
             datatt = self.data_subsampled[:, self.which_samples]
         else:
             datatt = self.data[:, self.which_samples]
-        if list(self.which_samples).count(False) > 0:
+        if list(self.which_samples).count(False) > 0 or self.subsampled:
             if self.subsampled:
                 q2 = numpy.log2(1.0+1.0e6*datatt/self.target_subsample)
             else:
@@ -436,7 +436,7 @@ class Preprocess(object):
             x.append(float(list(m).count(0.0))/float(len(m)))
             y.append(numpy.mean(m))
         pylab.scatter(y, x, alpha=0.2, s=5, c='b')
-        if list(self.which_samples).count(False) > 0:
+        if list(self.which_samples).count(False) > 0 or self.subsampled:
             xs = []
             ys = []
             for m in list(self.data_subsampled[:, self.which_samples]):
@@ -461,7 +461,7 @@ class Preprocess(object):
         pylab.xlabel('Total number of transcripts in the cell')
         pylab.figure()
         pylab.hist(self.cdr, 30, alpha=0.6, color='y')
-        if list(self.which_samples).count(False) > 0:
+        if list(self.which_samples).count(False) > 0 or self.subsampled:
             pylab.hist(numpy.array(self.cdr_subsampled)[self.which_samples], 30, alpha=0.6, color='r')
         pylab.xlabel('Cell complexity')
         print 'Minimum number of transcripts per cell: ' + \
@@ -780,7 +780,7 @@ class UnrootedGraph(object):
     """
     Main class for topological analysis of non-longitudinal single cell RNA-seq expression data.
     """
-    def __init__(self, name, table, shift=None, log2=True, posgl=False, csv=False, groups=True):
+    def __init__(self, name, table, shift=None, log2=True, posgl=False, csv=False, groups=True, connected=True):
         """
         Initializes the class by providing the the common name ('name') of .gexf and .json files produced by
         e.g. ParseAyasdiGraph() and the name of the file containing the filtered raw data ('table'), as produced by
@@ -793,13 +793,17 @@ class UnrootedGraph(object):
         connected is False, all connected components of the network are displayed. When
         'csv' is True, the input table is in CSV format. When 'groups' is False, the class is initialized with an
         empty group dictionary (e.g. required when the topological representation has been generated through
-        TopologicalRepresentation.save()).
+        TopologicalRepresentation.save()). When 'connected' is True it only considers the largest connected piece.
         """
         self.name = name
+        self.connected = True
         self.g = networkx.read_gexf(name + '.gexf')
-        listii = [len(aa.nodes()) for aa in list(networkx.connected_component_subgraphs(self.g))]
-        indexii = listii.index(numpy.max(listii))
-        self.gl = list(networkx.connected_component_subgraphs(self.g))[indexii]
+        if connected:
+            listii = [len(aa.nodes()) for aa in list(networkx.connected_component_subgraphs(self.g))]
+            indexii = listii.index(numpy.max(listii))
+            self.gl = list(networkx.connected_component_subgraphs(self.g))[indexii]
+        else:
+            self.gl = self.g
         self.pl = self.gl.nodes()
         self.adj = numpy.array(networkx.to_numpy_matrix(self.gl, nodelist=self.pl))
         self.log2 = log2
@@ -978,6 +982,9 @@ class UnrootedGraph(object):
                 q = pk.shape[1]
                 if self.log2:
                     t1 = numexpr.evaluate('sum(2**pk - 1, 1)')/q
+                    print t1.shape, pk.shape
+                    if len(t1.shape) > 1:
+                        t1 = t1[0]
                     pm[k, :] = numexpr.evaluate('log1p(t1)')/0.693147
                     tot += pm[k, :]
                 else:
@@ -1193,14 +1200,15 @@ class UnrootedGraph(object):
         Displays topological representation of the data colored according to the expression of a gene, genes or
         list of genes, specified by argument 'color'. This can be a gene or a list of one, two or three genes or lists
         of genes, to be respectively mapped to red, green and blue channels. When only one gene or list of genes is
-        specified, it uses color map specified by 'ccmap'. If optional argument 'connected' is set to True, only the
-        largest connected component of the graph is displayed. If argument 'labels' is True, node id's are also
-        displayed. Argument 'weight' allows to set a scaling factor for node sizes. When optional argument 'save'
-        specifies a file name, the figure will be save in the file, in the format specified by its extension, and
-        no plot will be displayed on the screen. When 'ignore_log' is True, it treat expression values as being in
-        natural scale, even if self.log2 is True (used internally). When argument 'table' is True, it displays in
-        addition a table with some statistics of the gene or genes. Optional argument 'axis' allows to specify axis
-        limits in the form [xmin, xmax, ymin, ymax]. Parameter alpha specifies the alpha value of edges.
+        specified, it uses color map specified by 'ccmap'. If optional argument 'connected' is set to True and
+        'self.connected' is False, only the largest connected component of the graph is displayed. If argument
+        'labels' is True, node id's are also displayed. Argument 'weight' allows to set a scaling factor for node
+        sizes. When optional argument 'save' specifies a file name, the figure will be save in the file, in the format
+        specified by its extension, and no plot will be displayed on the screen. When 'ignore_log' is True, it treat
+        expression values as being in natural scale, even if self.log2 is True (used internally). When argument 'table'
+        is True, it displays in addition a table with some statistics of the gene or genes. Optional argument 'axis'
+        allows to specify axis limits in the form [xmin, xmax, ymin, ymax]. Parameter alpha specifies the alpha value
+        of edges.
         """
         if connected:
             pg = self.gl
@@ -1532,7 +1540,7 @@ class RootedGraph(UnrootedGraph):
         When 'posgl' is True, instead of generating new positions, the positions stored in files name.posg and
         name.posgl are used for visualization of the topological graph.
         """
-        UnrootedGraph.__init__(self, name, table, shift, log2, posgl, csv, groups)
+        UnrootedGraph.__init__(self, name, table, shift, log2, posgl, csv, groups, connected=True)
         self.rootlane = rootlane
         self.root, self.leaf = self.find_root(self.get_dendrite())
         self.g3, self.dicdend = self.dendritic_graph()
