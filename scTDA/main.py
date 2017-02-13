@@ -1,7 +1,7 @@
 """
 scTDA. Library for topological data analysis of high-throughput single-cell RNA-seq data.
 
-Copyright 2016, Pablo G. Camara, Columbia University. All rights reserved.
+Copyright 2017, Pablo G. Camara, Columbia University. All rights reserved.
 
 """
 
@@ -163,12 +163,11 @@ def compare_results(table1, table2, threshold=0.05):
             total.append(sp[0])
             if float(sp[7]) < threshold:
                 f2p.append(sp[0])
-                if sp[0] in f1p:
+                if sp[0] in f1p and rooted:
                     fx.append(f1c[sp[0]])
                     gx.append(f1d[sp[0]])
-                    if rooted:
-                        fy.append(float(sp[8]))
-                        gy.append(float(sp[9]))
+                    fy.append(float(sp[8]))
+                    gy.append(float(sp[9]))
     f1.close()
     total = set(total)
     pylab.figure()
@@ -421,7 +420,7 @@ class Preprocess(object):
             datatt = self.data_subsampled[:, self.which_samples]
         else:
             datatt = self.data[:, self.which_samples]
-        if list(self.which_samples).count(False) > 0 or self.subsampled:
+        if list(self.which_samples).count(False) > 0:
             if self.subsampled:
                 q2 = numpy.log2(1.0+1.0e6*datatt/self.target_subsample)
             else:
@@ -436,7 +435,7 @@ class Preprocess(object):
             x.append(float(list(m).count(0.0))/float(len(m)))
             y.append(numpy.mean(m))
         pylab.scatter(y, x, alpha=0.2, s=5, c='b')
-        if list(self.which_samples).count(False) > 0 or self.subsampled:
+        if list(self.which_samples).count(False) > 0:
             xs = []
             ys = []
             for m in list(self.data_subsampled[:, self.which_samples]):
@@ -461,7 +460,7 @@ class Preprocess(object):
         pylab.xlabel('Total number of transcripts in the cell')
         pylab.figure()
         pylab.hist(self.cdr, 30, alpha=0.6, color='y')
-        if list(self.which_samples).count(False) > 0 or self.subsampled:
+        if list(self.which_samples).count(False) > 0:
             pylab.hist(numpy.array(self.cdr_subsampled)[self.which_samples], 30, alpha=0.6, color='r')
         pylab.xlabel('Cell complexity')
         print 'Minimum number of transcripts per cell: ' + \
@@ -780,7 +779,7 @@ class UnrootedGraph(object):
     """
     Main class for topological analysis of non-longitudinal single cell RNA-seq expression data.
     """
-    def __init__(self, name, table, shift=None, log2=True, posgl=False, csv=False, groups=True, connected=True):
+    def __init__(self, name, table, shift=None, log2=True, posgl=False, csv=False, groups=True):
         """
         Initializes the class by providing the the common name ('name') of .gexf and .json files produced by
         e.g. ParseAyasdiGraph() and the name of the file containing the filtered raw data ('table'), as produced by
@@ -793,17 +792,13 @@ class UnrootedGraph(object):
         connected is False, all connected components of the network are displayed. When
         'csv' is True, the input table is in CSV format. When 'groups' is False, the class is initialized with an
         empty group dictionary (e.g. required when the topological representation has been generated through
-        TopologicalRepresentation.save()). When 'connected' is True it only considers the largest connected piece.
+        TopologicalRepresentation.save()).
         """
         self.name = name
-        self.connected = True
         self.g = networkx.read_gexf(name + '.gexf')
-        if connected:
-            listii = [len(aa.nodes()) for aa in list(networkx.connected_component_subgraphs(self.g))]
-            indexii = listii.index(numpy.max(listii))
-            self.gl = list(networkx.connected_component_subgraphs(self.g))[indexii]
-        else:
-            self.gl = self.g
+        listii = [len(aa.nodes()) for aa in list(networkx.connected_component_subgraphs(self.g))]
+        indexii = listii.index(numpy.max(listii))
+        self.gl = list(networkx.connected_component_subgraphs(self.g))[indexii]
         self.pl = self.gl.nodes()
         self.adj = numpy.array(networkx.to_numpy_matrix(self.gl, nodelist=self.pl))
         self.log2 = log2
@@ -982,8 +977,6 @@ class UnrootedGraph(object):
                 q = pk.shape[1]
                 if self.log2:
                     t1 = numexpr.evaluate('sum(2**pk - 1, 1)')/q
-                    if len(t1.shape) > 1:
-                        t1 = t1[0]
                     pm[k, :] = numexpr.evaluate('log1p(t1)')/0.693147
                     tot += pm[k, :]
                 else:
@@ -1199,15 +1192,14 @@ class UnrootedGraph(object):
         Displays topological representation of the data colored according to the expression of a gene, genes or
         list of genes, specified by argument 'color'. This can be a gene or a list of one, two or three genes or lists
         of genes, to be respectively mapped to red, green and blue channels. When only one gene or list of genes is
-        specified, it uses color map specified by 'ccmap'. If optional argument 'connected' is set to True and
-        'self.connected' is False, only the largest connected component of the graph is displayed. If argument
-        'labels' is True, node id's are also displayed. Argument 'weight' allows to set a scaling factor for node
-        sizes. When optional argument 'save' specifies a file name, the figure will be save in the file, in the format
-        specified by its extension, and no plot will be displayed on the screen. When 'ignore_log' is True, it treat
-        expression values as being in natural scale, even if self.log2 is True (used internally). When argument 'table'
-        is True, it displays in addition a table with some statistics of the gene or genes. Optional argument 'axis'
-        allows to specify axis limits in the form [xmin, xmax, ymin, ymax]. Parameter alpha specifies the alpha value
-        of edges.
+        specified, it uses color map specified by 'ccmap'. If optional argument 'connected' is set to True, only the
+        largest connected component of the graph is displayed. If argument 'labels' is True, node id's are also
+        displayed. Argument 'weight' allows to set a scaling factor for node sizes. When optional argument 'save'
+        specifies a file name, the figure will be save in the file, in the format specified by its extension, and
+        no plot will be displayed on the screen. When 'ignore_log' is True, it treat expression values as being in
+        natural scale, even if self.log2 is True (used internally). When argument 'table' is True, it displays in
+        addition a table with some statistics of the gene or genes. Optional argument 'axis' allows to specify axis
+        limits in the form [xmin, xmax, ymin, ymax]. Parameter alpha specifies the alpha value of edges.
         """
         if connected:
             pg = self.gl
@@ -1420,10 +1412,9 @@ class UnrootedGraph(object):
         pylab.xlabel('Expression')
         pylab.show()
 
-    def cellular_subpopulations(self, min_dispersion, threshold=0.05, min_cells=5, clus_thres=0.65):
+    def cellular_subpopulations(self, threshold=0.05, min_cells=5, clus_thres=0.65):
         """
-        Identifies potential transient cellular subpopulations. The parameter 'min_dispersion'
-        sets an upper bound of the dispersion of the genes that are considered in the analysis. The parameter
+        Identifies potential transient cellular subpopulations. The parameter
         'threshold' sets an upper bound of the q-value of the genes that are considered in the analysis.
         The parameter 'min_cells' sets the minimum number of cells on which each of the genes considered in the
         analysis is expressed. Cellular subpopulations are determined by clustering the Jensen-Shannon distance
@@ -1433,20 +1424,13 @@ class UnrootedGraph(object):
         """
         con = []
         dis = []
-        contot = []
-        distot = []
         nam = []
         f = open(self.name + '.genes.tsv', 'r')
         for n, line in enumerate(f):
             if n > 0:
                 sp = line[:-1].split('\t')
-                if float(sp[9]) < min_dispersion and float(sp[7]) < threshold and float(sp[1]) > min_cells:
-                    con.append(float(sp[8]))
-                    dis.append(float(sp[9]))
+                if float(sp[7]) < threshold and float(sp[1]) > min_cells:
                     nam.append(sp[0])
-                elif float(sp[7]) < threshold and float(sp[1]) > min_cells:
-                    contot.append(float(sp[8]))
-                    distot.append(float(sp[9]))
         f.close()
         mat2 = self.JSD_matrix(nam)
         return [map(lambda xx: nam[xx], m)
@@ -1539,7 +1523,7 @@ class RootedGraph(UnrootedGraph):
         When 'posgl' is True, instead of generating new positions, the positions stored in files name.posg and
         name.posgl are used for visualization of the topological graph.
         """
-        UnrootedGraph.__init__(self, name, table, shift, log2, posgl, csv, groups, connected=True)
+        UnrootedGraph.__init__(self, name, table, shift, log2, posgl, csv, groups)
         self.rootlane = rootlane
         self.root, self.leaf = self.find_root(self.get_dendrite())
         self.g3, self.dicdend = self.dendritic_graph()
