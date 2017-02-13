@@ -21,6 +21,7 @@ tutorial can be downloaded [here](https://www.dropbox.com/s/lqlklu3j026onaa/scTD
 
 Publication:
 
-Rizvi, A. H.*, Camara, P. G.*, Kandror, E. K., Roberts, T. J., Scheiren, I., Maniatis, T., and Rabadan, R., 
+Rizvi, A. H.\*, Camara, P. G.\*, Kandror, E. K., Roberts, T. J., Scheiren, I., Maniatis, T., and Rabadan, R., 
 "Applied Topology Delineates Developmental Progression with Single-Cell Resolution", Nat. Biotechnol. (2017). In press.
+
 [* These authors contributed equally to this work.]
