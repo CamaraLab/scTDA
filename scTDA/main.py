@@ -94,7 +94,7 @@ def benjamini_hochberg(pvalues):
     """
     pvalues = numpy.array(pvalues)
     n = float(pvalues.shape[0])
-    new_pvalues = numpy.empty(n)
+    new_pvalues = numpy.empty(int(n))
     values = [(pvalue, i) for i, pvalue in enumerate(pvalues)]
     values.sort()
     values.reverse()
