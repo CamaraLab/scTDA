@@ -8,7 +8,7 @@ Copyright 2017, Pablo G. Camara, Columbia University. All rights reserved.
 __author__ = "Pablo G. Camara"
 __maintainer__ = "Pablo G. Camara"
 __email__ = "pablo.g.camara@gmail.com"
-__credits__ = "Patrick van Nieuwenhuizen, Luis Aparicio"
+__credits__ = "Patrick van Nieuwenhuizen, Luis Aparicio, Yan Meng"
 
 
 import json
@@ -768,7 +768,7 @@ class TopologicalRepresentation(object):
                                                           stat=statistics, max_K=max_K)
         dic = {}
         for n, rs in enumerate(all_clusters):
-            dic[str(n)] = rs
+            dic[str(n)] = map(lambda x: int(x), rs)
         with open(name + '.json', 'wb') as handle3:
             json.dump(dic, handle3)
         networkx.write_gexf(G, name + '.gexf')
