@@ -1507,7 +1507,7 @@ class RootedGraph(UnrootedGraph):
                 g3.add_node(str(n) + '_' + str(n2))
                 if n > 0:
                     for n3, yu2 in enumerate(dicdend[n-1]):
-                        if networkx.is_connected(self.gl.subgraph(yu+yu2)):
+                        if networkx.is_connected(self.gl.subgraph(list(yu)+list(yu2))):
                             g3.add_edge(str(n) + '_' + str(n2), str(n-1) + '_' + str(n3))
         return g3, dicdend
 
@@ -1537,7 +1537,7 @@ class RootedGraph(UnrootedGraph):
         for ee in self.g3.edges():
             yu = self.dicdend[int(ee[0].split('_')[0])][int(ee[0].split('_')[1])]
             yu2 = self.dicdend[int(ee[1].split('_')[0])][int(ee[1].split('_')[1])]
-            self.edgesize.append(self.gl.subgraph(yu+yu2).number_of_edges()-self.gl.subgraph(yu).number_of_edges()
+            self.edgesize.append(self.gl.subgraph(list(yu)+list(yu2)).number_of_edges()-self.gl.subgraph(yu).number_of_edges()
                                  - self.gl.subgraph(yu2).number_of_edges())
             self.dicedgesize[ee] = self.edgesize[-1]
         for ee in self.g3.nodes():
