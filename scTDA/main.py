@@ -1402,7 +1402,7 @@ class UnrootedGraph(object):
                 q.append(o)
         pylab.figure()
         pylab.hist(q, max(q)-1, alpha=0.6, color='r')
-        pylab.xlabel('Number of nodes contaning the same cell')
+        pylab.xlabel('Number of nodes containing the same cell')
         pylab.figure()
         r = []
         for m in self.dicgenes.keys():
