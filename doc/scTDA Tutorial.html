@@ -11751,7 +11751,7 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1>scTDA Tutorial (v0.95)</h1><p>scTDA is an object oriented python library for topological data analysis of high-throughput single-cell RNA-seq data. It includes tools for the preprocessing, analysis, and exploration of single-cell RNA-seq data, based on topological representations produced by the Mapper algorithm. This tutorial illustrates some of the basic features of scTDA using the human preimplantation dataset of <em>Petropoulos S, et al., "Single-Cell RNA-Seq Reveals Lineage and X Chromosome Dynamics in Human Preimplantation Embryos", Cell 165: 1012 - 1026 (2016)</em>, as a case study. The scTDA code contains more advanced options and commands that are not described in this tutorial. For more detailed documentation, please use the ipython command <code>?</code>.</p>
+<h1>scTDA Tutorial (v0.97)</h1><p>scTDA is an object oriented python library for topological data analysis of high-throughput single-cell RNA-seq data. It includes tools for the preprocessing, analysis, and exploration of single-cell RNA-seq data, based on topological representations produced by the Mapper algorithm. This tutorial illustrates some of the basic features of scTDA using the human preimplantation dataset of <em>Petropoulos S, et al., "Single-Cell RNA-Seq Reveals Lineage and X Chromosome Dynamics in Human Preimplantation Embryos", Cell 165: 1012 - 1026 (2016)</em>, as a case study. The scTDA code contains more advanced options and commands that are not described in this tutorial. For more detailed documentation, please use the ipython command <code>?</code>.</p>
 
 </div>
 </div>
@@ -12172,7 +12172,7 @@ Minimum cell complexity (subsampled): 3429
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[11]:</div>
+<div class="prompt input_prompt">In&nbsp;[13]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">p</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Embryo&#39;</span><span class="p">)</span>
@@ -12205,7 +12205,7 @@ Minimum cell complexity (subsampled): 3429
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[12]:</div>
+<div class="prompt input_prompt">In&nbsp;[11]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">t</span> <span class="o">=</span> <span class="n">scTDA</span><span class="o">.</span><span class="n">TopologicalRepresentation</span><span class="p">(</span><span class="s1">&#39;Embryo&#39;</span><span class="p">,</span> <span class="n">lens</span><span class="o">=</span><span class="s1">&#39;pca&#39;</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s1">&#39;euclidean&#39;</span><span class="p">)</span>
@@ -12238,7 +12238,7 @@ Minimum cell complexity (subsampled): 3429
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[13]:</div>
+<div class="prompt input_prompt">In&nbsp;[12]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">t</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;Embryo_pca_25_0.40&#39;</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mf">0.40</span><span class="p">);</span>
@@ -12276,7 +12276,7 @@ this implies 1234 nodes in the mapper graph
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[14]:</div>
+<div class="prompt input_prompt">In&nbsp;[13]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span> <span class="o">=</span> <span class="n">scTDA</span><span class="o">.</span><span class="n">UnrootedGraph</span><span class="p">(</span><span class="s1">&#39;Embryo_pca_25_0.40&#39;</span><span class="p">,</span> <span class="s1">&#39;Embryo.no_subsampling.tsv&#39;</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
@@ -12311,7 +12311,7 @@ this implies 1234 nodes in the mapper graph
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[15]:</div>
+<div class="prompt input_prompt">In&nbsp;[35]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">scTDA</span><span class="o">.</span><span class="n">ParseAyasdiGraph</span><span class="p">(</span><span class="s1">&#39;Embryo_mds&#39;</span><span class="p">,</span><span class="s1">&#39;1480173499692&#39;</span><span class="p">,</span><span class="s1">&#39;-1429704228027513618&#39;</span><span class="p">,</span><span class="s1">&#39;username&#39;</span><span class="p">,</span><span class="s1">&#39;password&#39;</span><span class="p">)</span>
@@ -12354,7 +12354,7 @@ this implies 1234 nodes in the mapper graph
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[16]:</div>
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span> <span class="o">=</span> <span class="n">scTDA</span><span class="o">.</span><span class="n">RootedGraph</span><span class="p">(</span><span class="s1">&#39;Embryo_mds&#39;</span><span class="p">,</span> <span class="s1">&#39;Embryo.no_subsampling.tsv&#39;</span><span class="p">,</span> <span class="n">posgl</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
@@ -12370,14 +12370,15 @@ this implies 1234 nodes in the mapper graph
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>The class <code>scTDA.RootedGraph</code> includes several methods for the analysis and visulization of data. We can display some general statistics using the method <code>scTDA.RootedGraph.show_statistics()</code>,</p>
+<p>When using topological representations generated through sakmapper, the option <code>groups=False</code> should be specified when initializing the classes <code>scTDA.RootedGraph</code> or <code>scTDA.UnRootedGraph</code>. The argument <code>posgl=True</code> forces scTDA to use a pre-comuputed layout for visualization of the topological representation. To compute the visualization layout of a topological representation for the first time initialize the class using the argument <code>posgl=False</code>.</p>
+<p>The class <code>scTDA.RootedGraph</code> includes several methods for the analysis and visualization of data. We can display some general statistics using the method <code>scTDA.RootedGraph.show_statistics()</code>,</p>
 
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[17]:</div>
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">show_statistics</span><span class="p">()</span>
@@ -12414,7 +12415,7 @@ this implies 1234 nodes in the mapper graph
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[18]:</div>
+<div class="prompt input_prompt">In&nbsp;[9]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="s1">&#39;DPPA5&#39;</span><span class="p">);</span>
@@ -12447,7 +12448,7 @@ this implies 1234 nodes in the mapper graph
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[19]:</div>
+<div class="prompt input_prompt">In&nbsp;[11]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">draw</span><span class="p">([</span><span class="s1">&#39;HTR3E&#39;</span><span class="p">,</span> <span class="s1">&#39;CDX1&#39;</span><span class="p">]);</span>
@@ -12480,7 +12481,7 @@ this implies 1234 nodes in the mapper graph
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[20]:</div>
+<div class="prompt input_prompt">In&nbsp;[12]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">draw</span><span class="p">([[</span><span class="s1">&#39;NTSR2&#39;</span><span class="p">,</span> <span class="s1">&#39;PCDHGA2&#39;</span><span class="p">,</span> <span class="s1">&#39;HTR3E&#39;</span><span class="p">],</span> <span class="s1">&#39;CDX1&#39;</span><span class="p">]);</span>
@@ -12513,7 +12514,7 @@ this implies 1234 nodes in the mapper graph
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[21]:</div>
+<div class="prompt input_prompt">In&nbsp;[13]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="s1">&#39;_CDR&#39;</span><span class="p">);</span>
@@ -12547,7 +12548,7 @@ this implies 1234 nodes in the mapper graph
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[22]:</div>
+<div class="prompt input_prompt">In&nbsp;[14]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">plot_CDR_correlation</span><span class="p">()</span>
@@ -12561,7 +12562,7 @@ this implies 1234 nodes in the mapper graph
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[22]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[14]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
@@ -12601,7 +12602,7 @@ this implies 1234 nodes in the mapper graph
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[23]:</div>
+<div class="prompt input_prompt">In&nbsp;[15]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="s1">&#39;timepoint&#39;</span><span class="p">);</span>
@@ -12627,7 +12628,7 @@ this implies 1234 nodes in the mapper graph
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>A remarkable feature of the topoological representation, based just on expression data, is that it reproduces correctly the differentiation time course, as observed in the figure.</p>
+<p>A remarkable feature of the topological representation, based just on expression data, is that it reproduces correctly the differentiation time course, as observed in the figure.</p>
 <p>Similarly, the keyword <code>'timepoint_'</code> can be used to plot the density of cells that belong to a given time point,</p>
 
 </div>
@@ -12635,7 +12636,7 @@ this implies 1234 nodes in the mapper graph
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[24]:</div>
+<div class="prompt input_prompt">In&nbsp;[16]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="s1">&#39;timepoint_4&#39;</span><span class="p">);</span>
@@ -12668,7 +12669,7 @@ this implies 1234 nodes in the mapper graph
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[25]:</div>
+<div class="prompt input_prompt">In&nbsp;[17]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="s1">&#39;_dist_root&#39;</span><span class="p">);</span>
@@ -12701,7 +12702,7 @@ this implies 1234 nodes in the mapper graph
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[26]:</div>
+<div class="prompt input_prompt">In&nbsp;[18]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">plot_rootlane_correlation</span><span class="p">()</span>
@@ -12715,7 +12716,7 @@ this implies 1234 nodes in the mapper graph
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[26]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[18]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
@@ -12755,7 +12756,7 @@ this implies 1234 nodes in the mapper graph
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[27]:</div>
+<div class="prompt input_prompt">In&nbsp;[19]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="s1">&#39;lib_E6_17&#39;</span><span class="p">);</span>
@@ -12788,7 +12789,7 @@ this implies 1234 nodes in the mapper graph
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[28]:</div>
+<div class="prompt input_prompt">In&nbsp;[20]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="s1">&#39;ID_D7_E7_19_7&#39;</span><span class="p">);</span>
@@ -12821,7 +12822,7 @@ this implies 1234 nodes in the mapper graph
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[29]:</div>
+<div class="prompt input_prompt">In&nbsp;[26]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">draw_expr_timeline</span><span class="p">(</span><span class="s1">&#39;DNMT3B&#39;</span><span class="p">);</span>
@@ -12854,7 +12855,7 @@ this implies 1234 nodes in the mapper graph
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[30]:</div>
+<div class="prompt input_prompt">In&nbsp;[22]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">draw_skeleton</span><span class="p">(</span><span class="s1">&#39;timepoint&#39;</span><span class="p">,</span> <span class="n">markpath</span><span class="o">=</span><span class="bp">True</span><span class="p">);</span>
@@ -12887,7 +12888,7 @@ this implies 1234 nodes in the mapper graph
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[31]:</div>
+<div class="prompt input_prompt">In&nbsp;[27]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">draw_expr_timeline</span><span class="p">(</span><span class="s1">&#39;DNMT3B&#39;</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="bp">True</span><span class="p">);</span>
@@ -12916,7 +12917,7 @@ S(g) = \frac{N-1}{N}\sum_{i,j} p_i(g) w_{ij} p_j(g)
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[32]:</div>
+<div class="prompt input_prompt">In&nbsp;[28]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">connectivity</span><span class="p">(</span><span class="s1">&#39;PDGFRA&#39;</span><span class="p">)</span>
@@ -12930,7 +12931,7 @@ S(g) = \frac{N-1}{N}\sum_{i,j} p_i(g) w_{ij} p_j(g)
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[32]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[28]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
@@ -12955,7 +12956,7 @@ S(g) = \frac{N-1}{N}\sum_{i,j} p_i(g) w_{ij} p_j(g)
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[33]:</div>
+<div class="prompt input_prompt">In&nbsp;[29]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">connectivity_pvalue</span><span class="p">(</span><span class="s1">&#39;PDGFRA&#39;</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
@@ -12969,7 +12970,7 @@ S(g) = \frac{N-1}{N}\sum_{i,j} p_i(g) w_{ij} p_j(g)
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[33]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[29]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
@@ -12994,7 +12995,7 @@ S(g) = \frac{N-1}{N}\sum_{i,j} p_i(g) w_{ij} p_j(g)
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[34]:</div>
+<div class="prompt input_prompt">In&nbsp;[30]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="s1">&#39;PDGFRA&#39;</span><span class="p">);</span>
@@ -13027,7 +13028,7 @@ S(g) = \frac{N-1}{N}\sum_{i,j} p_i(g) w_{ij} p_j(g)
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[35]:</div>
+<div class="prompt input_prompt">In&nbsp;[32]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">connectivity_pvalue</span><span class="p">(</span><span class="s1">&#39;ACTA2&#39;</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
@@ -13041,7 +13042,7 @@ S(g) = \frac{N-1}{N}\sum_{i,j} p_i(g) w_{ij} p_j(g)
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[35]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[32]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
@@ -13056,7 +13057,7 @@ S(g) = \frac{N-1}{N}\sum_{i,j} p_i(g) w_{ij} p_j(g)
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[36]:</div>
+<div class="prompt input_prompt">In&nbsp;[33]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="s1">&#39;ACTA2&#39;</span><span class="p">);</span>
@@ -13095,7 +13096,7 @@ D(g) = \sqrt{\sum_i (d_i - C(g))^2p_i(g)}
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[37]:</div>
+<div class="prompt input_prompt">In&nbsp;[34]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">centroid</span><span class="p">(</span><span class="s1">&#39;PDGFRA&#39;</span><span class="p">)</span>
@@ -13109,7 +13110,7 @@ D(g) = \sqrt{\sum_i (d_i - C(g))^2p_i(g)}
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[37]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[34]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
@@ -13135,7 +13136,7 @@ D(g) = \sqrt{\sum_i (d_i - C(g))^2p_i(g)}
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[38]:</div>
+<div class="prompt input_prompt">In&nbsp;[35]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">expr</span><span class="p">(</span><span class="s1">&#39;PDGFRA&#39;</span><span class="p">)</span>
@@ -13149,7 +13150,7 @@ D(g) = \sqrt{\sum_i (d_i - C(g))^2p_i(g)}
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[38]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[35]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
@@ -13174,7 +13175,7 @@ D(g) = \sqrt{\sum_i (d_i - C(g))^2p_i(g)}
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[39]:</div>
+<div class="prompt input_prompt">In&nbsp;[36]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">delta</span><span class="p">(</span><span class="s1">&#39;PDGFRA&#39;</span><span class="p">)</span>
@@ -13188,7 +13189,7 @@ D(g) = \sqrt{\sum_i (d_i - C(g))^2p_i(g)}
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[39]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[36]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
@@ -13213,7 +13214,7 @@ D(g) = \sqrt{\sum_i (d_i - C(g))^2p_i(g)}
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[40]:</div>
+<div class="prompt input_prompt">In&nbsp;[37]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">dicgroups</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
@@ -13227,7 +13228,7 @@ D(g) = \sqrt{\sum_i (d_i - C(g))^2p_i(g)}
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[40]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[37]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
@@ -13252,7 +13253,7 @@ D(g) = \sqrt{\sum_i (d_i - C(g))^2p_i(g)}
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[41]:</div>
+<div class="prompt input_prompt">In&nbsp;[38]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">expr</span><span class="p">(</span><span class="s1">&#39;PDGFRA&#39;</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;group_1&#39;</span><span class="p">)</span>
@@ -13266,7 +13267,7 @@ D(g) = \sqrt{\sum_i (d_i - C(g))^2p_i(g)}
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[41]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[38]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
@@ -13281,7 +13282,7 @@ D(g) = \sqrt{\sum_i (d_i - C(g))^2p_i(g)}
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[42]:</div>
+<div class="prompt input_prompt">In&nbsp;[39]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">delta</span><span class="p">(</span><span class="s1">&#39;PDGFRA&#39;</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s1">&#39;group_1&#39;</span><span class="p">)</span>
@@ -13295,7 +13296,7 @@ D(g) = \sqrt{\sum_i (d_i - C(g))^2p_i(g)}
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[42]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[39]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
@@ -13321,7 +13322,7 @@ D(g) = \sqrt{\sum_i (d_i - C(g))^2p_i(g)}
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[43]:</div>
+<div class="prompt input_prompt">In&nbsp;[40]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">splic</span> <span class="o">=</span> <span class="p">[]</span>
@@ -13363,7 +13364,7 @@ D(g) = \sqrt{\sum_i (d_i - C(g))^2p_i(g)}
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[44]:</div>
+<div class="prompt input_prompt">In&nbsp;[5]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">filtercells</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">filterexp</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">annotation</span><span class="o">=</span><span class="n">annotations</span><span class="p">);</span>
@@ -13397,7 +13398,7 @@ D(g) = \sqrt{\sum_i (d_i - C(g))^2p_i(g)}
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[45]:</div>
+<div class="prompt input_prompt">In&nbsp;[42]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="o">!</span>head Embryo_mds.genes.tsv
@@ -13443,7 +13444,7 @@ A4GALT	1399	14.2953925217	6.39890253609	16.6755722669	0.0235157239878	0.0	0.0	5.
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[46]:</div>
+<div class="prompt input_prompt">In&nbsp;[43]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">scTDA</span><span class="o">.</span><span class="n">compare_results</span><span class="p">(</span><span class="s1">&#39;Embryo_mds&#39;</span><span class="p">,</span> <span class="s1">&#39;Embryo_mds_euclid&#39;</span><span class="p">);</span>
@@ -13494,7 +13495,7 @@ Pearson&#39;s correlation between dispersions: (0.98043329096775433, 0.0)
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[47]:</div>
+<div class="prompt input_prompt">In&nbsp;[50]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">g</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">cellular_subpopulations</span><span class="p">(</span><span class="mf">3.2</span><span class="p">)</span>
@@ -13528,7 +13529,7 @@ Pearson&#39;s correlation between dispersions: (0.98043329096775433, 0.0)
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[48]:</div>
+<div class="prompt input_prompt">In&nbsp;[52]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">draw</span><span class="p">([</span><span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">g</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">g</span><span class="p">[</span><span class="mi">2</span><span class="p">]]);</span>
@@ -13564,7 +13565,7 @@ J(g,h) = \left[\frac12\sum_i\left(p_i(g)\textrm{log }p_i(g)+p_i(h)\textrm{log }p
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[49]:</div>
+<div class="prompt input_prompt">In&nbsp;[11]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">g</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">cellular_subpopulations</span><span class="p">(</span><span class="mf">3.15</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;js&#39;</span><span class="p">,</span> <span class="n">clus_thres</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
@@ -13587,7 +13588,7 @@ J(g,h) = \left[\frac12\sum_i\left(p_i(g)\textrm{log }p_i(g)+p_i(h)\textrm{log }p
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[50]:</div>
+<div class="prompt input_prompt">In&nbsp;[12]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">draw</span><span class="p">([</span><span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">g</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">g</span><span class="p">[</span><span class="mi">2</span><span class="p">]]);</span>
