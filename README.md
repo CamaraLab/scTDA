@@ -24,4 +24,3 @@ More details on the scTDA algorithm can be found in:
 Rizvi, A. H.\*, Camara, P. G.\*, Kandror, E. K., Roberts, T. J., Scheiren, I., Maniatis, T., and Rabadan, R., 
 "Single-Cell Topological RNA-Seq Analysis Reveals Insights Into Cellular Differentiation and Development", Nat. Biotechnol. (2017). In press.
 [\* These authors contributed equally to this work.]
-
