@@ -8,7 +8,7 @@ Copyright 2017, Pablo G. Camara, Columbia University. All rights reserved.
 __author__ = "Pablo G. Camara"
 __maintainer__ = "Pablo G. Camara"
 __email__ = "pablo.g.camara@gmail.com"
-__credits__ = "Patrick van Nieuwenhuizen, Luis Aparicio"
+__credits__ = "Patrick van Nieuwenhuizen, Luis Aparicio, Yan Meng"
 
 
 import json
@@ -94,7 +94,7 @@ def benjamini_hochberg(pvalues):
     """
     pvalues = numpy.array(pvalues)
     n = float(pvalues.shape[0])
-    new_pvalues = numpy.empty(n)
+    new_pvalues = numpy.empty(int(n))
     values = [(pvalue, i) for i, pvalue in enumerate(pvalues)]
     values.sort()
     values.reverse()
@@ -768,7 +768,7 @@ class TopologicalRepresentation(object):
                                                           stat=statistics, max_K=max_K)
         dic = {}
         for n, rs in enumerate(all_clusters):
-            dic[str(n)] = rs
+            dic[str(n)] = map(lambda x: int(x), rs)
         with open(name + '.json', 'wb') as handle3:
             json.dump(dic, handle3)
         networkx.write_gexf(G, name + '.gexf')
@@ -1402,7 +1402,7 @@ class UnrootedGraph(object):
                 q.append(o)
         pylab.figure()
         pylab.hist(q, max(q)-1, alpha=0.6, color='r')
-        pylab.xlabel('Number of nodes contaning the same cell')
+        pylab.xlabel('Number of nodes containing the same cell')
         pylab.figure()
         r = []
         for m in self.dicgenes.keys():
@@ -1507,7 +1507,7 @@ class RootedGraph(UnrootedGraph):
                 g3.add_node(str(n) + '_' + str(n2))
                 if n > 0:
                     for n3, yu2 in enumerate(dicdend[n-1]):
-                        if networkx.is_connected(self.gl.subgraph(yu+yu2)):
+                        if networkx.is_connected(self.gl.subgraph(list(yu)+list(yu2))):
                             g3.add_edge(str(n) + '_' + str(n2), str(n-1) + '_' + str(n3))
         return g3, dicdend
 
@@ -1537,7 +1537,7 @@ class RootedGraph(UnrootedGraph):
         for ee in self.g3.edges():
             yu = self.dicdend[int(ee[0].split('_')[0])][int(ee[0].split('_')[1])]
             yu2 = self.dicdend[int(ee[1].split('_')[0])][int(ee[1].split('_')[1])]
-            self.edgesize.append(self.gl.subgraph(yu+yu2).number_of_edges()-self.gl.subgraph(yu).number_of_edges()
+            self.edgesize.append(self.gl.subgraph(list(yu)+list(yu2)).number_of_edges()-self.gl.subgraph(yu).number_of_edges()
                                  - self.gl.subgraph(yu2).number_of_edges())
             self.dicedgesize[ee] = self.edgesize[-1]
         for ee in self.g3.nodes():
