@@ -17,7 +17,7 @@ scTDA can be imported using the command:
 `import scTDA`
 
 A tutorial illustrating the basic scTDA workflow can be found in `doc/scTDA Tutorial.html`. The source notebook and data files for the 
-tutorial can be downloaded [here](https://www.dropbox.com/s/lqlklu3j026onaa/scTDA%20Tutorial.tar.gz?dl=0).
+tutorial can be downloaded [here](https://www.dropbox.com/s/ma80a641miteyxf/scTDA%20Tutorial.tar.gz?dl=0).
 
 More details on the scTDA algorithm can be found in:
 
