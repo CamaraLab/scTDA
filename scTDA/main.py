@@ -34,6 +34,9 @@ import sklearn.metrics.pairwise
 from mpl_toolkits.mplot3d import Axes3D
 import warnings
 warnings.filterwarnings("ignore")
+pylab.rcParams["patch.force_edgecolor"] = True
+pylab.rcParams['patch.facecolor'] = 'k'
+
 
 """
 GLOBAL METHODS
@@ -1216,7 +1219,8 @@ class UnrootedGraph(object):
         if type(color) == list and len(color) == 1:
             coloru, tol = self.get_gene(color[0], ignore_log=ignore_log, con=connected)
             values = [coloru[node] for node in pg.nodes()]
-            networkx.draw_networkx_nodes(pg, pos, node_color=values, node_size=sizes, cmap=pylab.get_cmap(ccmap))
+            nol = networkx.draw_networkx_nodes(pg, pos, node_color=values, node_size=sizes, cmap=pylab.get_cmap(ccmap))
+            nol.set_edgecolor('k')
             polca = values
         elif type(color) == list and len(color) == 2:
             colorr, tolr = self.get_gene(color[0], ignore_log=ignore_log, con=connected)
@@ -1229,7 +1233,8 @@ class UnrootedGraph(object):
                 bmax = 1.0
             values = [(1.0-colorb[node]/bmax, max(1.0-(colorr[node]/rmax+colorb[node]/bmax), 0.0),
                        1.0-colorr[node]/rmax) for node in pg.nodes()]
-            networkx.draw_networkx_nodes(pg, pos, node_color=values, node_size=sizes)
+            nol = networkx.draw_networkx_nodes(pg, pos, node_color=values, node_size=sizes)
+            nol.set_edgecolor('k')
             polca = [(colorr[node], colorb[node]) for node in pg.nodes()]
         elif type(color) == list and len(color) == 3:
             colorr, tolr = self.get_gene(color[0], ignore_log=ignore_log, con=connected)
@@ -1247,7 +1252,8 @@ class UnrootedGraph(object):
             values = [(max(1.0-(colorg[node]/gmax+colorb[node]/bmax), 0.0),
                        max(1.0-(colorr[node]/rmax+colorb[node]/bmax), 0.0),
                        max(1.0-(colorr[node]/rmax+colorg[node]/gmax), 0.0)) for node in pg.nodes()]
-            networkx.draw_networkx_nodes(pg, pos, node_color=values, node_size=sizes)
+            nol = networkx.draw_networkx_nodes(pg, pos, node_color=values, node_size=sizes)
+            nol.set_edgecolor('k')
             polca = [(colorr[node], colorg[node], colorb[node]) for node in pg.nodes()]
         elif type(color) == list and len(color) == 4:
             colorr, tolr = self.get_gene(color[0], ignore_log=ignore_log, con=connected)
@@ -1269,7 +1275,8 @@ class UnrootedGraph(object):
             values = [(max(1.0-(colorg[node]/gmax+colorb[node]/bmax), 0.0),
                        max(1.0-(colorr[node]/rmax+colorb[node]/bmax+0.36*colord[node]/dmax), 0.0),
                        max(1.0-(colorr[node]/rmax+colorg[node]/gmax+colord[node]/dmax), 0.0)) for node in pg.nodes()]
-            networkx.draw_networkx_nodes(pg, pos, node_color=values, node_size=sizes)
+            nol = networkx.draw_networkx_nodes(pg, pos, node_color=values, node_size=sizes)
+            nol.set_edgecolor('k')
             polca = [(colorr[node], colorg[node], colorb[node], colord[node]) for node in pg.nodes()]
         if labels:
             networkx.draw_networkx_labels(pg, pos, font_size=5, font_family='sans-serif')
@@ -1630,9 +1637,10 @@ class RootedGraph(UnrootedGraph):
                             pol += geys[uni]
                         pol /= len(self.dicmelisa[ee])
                     values[llp] += pol
-            networkx.draw_networkx_nodes(pg, pos, node_color=values,
+            nol = networkx.draw_networkx_nodes(pg, pos, node_color=values,
                                          node_size=numpy.array(nodesize)*weight*50.0/float(max(nodesize)),
                                          cmap=pylab.get_cmap(ccmap))
+            nol.set_edgecolor('k')
         elif type(color) == list and len(color) == 2:
             geysr = self.dicgenes[color[0]]
             geysb = self.dicgenes[color[1]]
@@ -1659,8 +1667,9 @@ class RootedGraph(UnrootedGraph):
             bmax = float(max(colorb.values()))
             values = [(1.0-colorb[node]/bmax, max(1.0-(colorr[node]/rmax+colorb[node]/bmax), 0.0),
                        1.0-colorr[node]/rmax) for node in pg.nodes()]
-            networkx.draw_networkx_nodes(pg, pos, node_color=values,
+            nol = networkx.draw_networkx_nodes(pg, pos, node_color=values,
                                          node_size=numpy.array(nodesize)*weight*50.0/float(max(nodesize)))
+            nol.set_edgecolor('k')
         elif type(color) == list and len(color) == 3:
             geysr = self.dicgenes[color[0]]
             geysg = self.dicgenes[color[1]]
@@ -1697,8 +1706,9 @@ class RootedGraph(UnrootedGraph):
             values = [(max(1.0-(colorg[node]/gmax+colorb[node]/bmax), 0.0),
                        max(1.0-(colorr[node]/rmax+colorb[node]/bmax), 0.0),
                        max(1.0-(colorr[node]/rmax+colorg[node]/gmax), 0.0)) for node in pg.nodes()]
-            networkx.draw_networkx_nodes(pg, pos, node_color=values,
+            nol = networkx.draw_networkx_nodes(pg, pos, node_color=values,
                                          node_size=numpy.array(nodesize)*weight*50.0/float(max(nodesize)))
+            nol.set_edgecolor('k')
         frame1 = pylab.gca()
         frame1.axes.get_xaxis().set_ticks([])
         frame1.axes.get_yaxis().set_ticks([])
