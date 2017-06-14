@@ -1,4 +1,4 @@
-"""
+""""
 scTDA. Library for topological data analysis of high-throughput single-cell RNA-seq data.
 
 Copyright 2017, Pablo G. Camara, Columbia University. All rights reserved.
@@ -423,7 +423,7 @@ class Preprocess(object):
             datatt = self.data_subsampled[:, self.which_samples]
         else:
             datatt = self.data[:, self.which_samples]
-        if list(self.which_samples).count(False) > 0:
+        if list(self.which_samples).count(False) > 0 or self.subsampled:
             if self.subsampled:
                 q2 = numpy.log2(1.0+1.0e6*datatt/self.target_subsample)
             else:
@@ -438,7 +438,7 @@ class Preprocess(object):
             x.append(float(list(m).count(0.0))/float(len(m)))
             y.append(numpy.mean(m))
         pylab.scatter(y, x, alpha=0.2, s=5, c='b')
-        if list(self.which_samples).count(False) > 0:
+        if list(self.which_samples).count(False) > 0 or self.subsampled:
             xs = []
             ys = []
             for m in list(self.data_subsampled[:, self.which_samples]):
@@ -463,7 +463,7 @@ class Preprocess(object):
         pylab.xlabel('Total number of transcripts in the cell')
         pylab.figure()
         pylab.hist(self.cdr, 30, alpha=0.6, color='y')
-        if list(self.which_samples).count(False) > 0:
+        if list(self.which_samples).count(False) > 0 or self.subsampled:
             pylab.hist(numpy.array(self.cdr_subsampled)[self.which_samples], 30, alpha=0.6, color='r')
         pylab.xlabel('Cell complexity')
         print 'Minimum number of transcripts per cell: ' + \
