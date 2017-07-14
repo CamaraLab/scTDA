@@ -56,7 +56,8 @@ def ParseAyasdiGraph(name, source, lab, user, password):
     nodes_ids = [int(node['id']) for node in network['nodes']]
     nodes_contents = {}
     for node_id in nodes_ids:
-        output_node = session.post('https://platform.ayasdi.com/workbench/v0/sources/' + source + '/retrieve_row_indices',
+        output_node = session.post('https://platform.ayasdi.com/workbench/v0/sources/' + source +
+                                   '/retrieve_row_indices',
                          data=json.dumps({"network_nodes_descriptions": [{"network_id": lab, "node_ids": [node_id]}]}),
                                       headers={"Content-type": "application/json"})
         nodes_contents[node_id] = json.loads(output_node.content)['row_indices']
@@ -135,70 +136,97 @@ def compare_results(table1, table2, threshold=0.05):
     it also plots the correlation of the centroid of the genes that are significant in the two data sets, as well as
     the correlation of the dispersion of the genes that are significant in both data sets.
     """
-    f1p = []
-    f1c = {}
-    f1d = {}
-    f1 = open(table1 + '.genes.tsv', 'r')
-    total = []
-    for n, line in enumerate(f1):
-        sp = line[:-1].split('\t')
-        if n == 0:
-            if 'Centroid' in sp:
-                rooted = True
+    significant_genes_network1 = []
+    significant_genes_centroids_network1 = {}
+    significant_genes_dispersions_network1 = {}
+    file_network1 = open(table1 + '.genes.tsv', 'r')
+    genes = []
+    is_rooted = False
+    for line_index, line in enumerate(file_network1):
+        line_split = line[:-1].split('\t')
+        if line_index == 0:
+            if 'Centroid' in line_split:
+                is_rooted = True
             else:
-                rooted = False
+                is_rooted = False
         else:
-            total.append(sp[0])
-            if float(sp[7]) < threshold:
-                f1p.append(sp[0])
-                if rooted:
-                    f1c[sp[0]] = float(sp[8])
-                    f1d[sp[0]] = float(sp[9])
-    f1.close()
-    f2p = []
-    fx = []
-    fy = []
-    gx = []
-    gy = []
-    f1 = open(table2 + '.genes.tsv', 'r')
-    for n, line in enumerate(f1):
-        if n > 0:
-            sp = line[:-1].split('\t')
-            total.append(sp[0])
-            if float(sp[7]) < threshold:
-                f2p.append(sp[0])
-                if sp[0] in f1p and rooted:
-                    fx.append(f1c[sp[0]])
-                    gx.append(f1d[sp[0]])
-                    fy.append(float(sp[8]))
-                    gy.append(float(sp[9]))
-    f1.close()
-    total = set(total)
+            genes.append(line_split[0])
+            if float(line_split[7]) < threshold:
+                significant_genes_network1.append(line_split[0])
+                if is_rooted:
+                    significant_genes_centroids_network1[line_split[0]] = float(line_split[8])
+                    significant_genes_dispersions_network1[line_split[0]] = float(line_split[9])
+    file_network1.close()
+    significant_genes_network2 = []
+    common_significant_genes_centroids_network1 = []
+    common_significant_genes_centroids_network2 = []
+    common_significant_genes_dispersions_network1 = []
+    common_significant_genes_dispersions_network2 = []
+    file_network2 = open(table2 + '.genes.tsv', 'r')
+    for line_index, line in enumerate(file_network2):
+        if line_index > 0:
+            line_split = line[:-1].split('\t')
+            genes.append(line_split[0])
+            if float(line_split[7]) < threshold:
+                significant_genes_network2.append(line_split[0])
+                if line_split[0] in significant_genes_network1 and is_rooted:
+                    common_significant_genes_centroids_network1.append(
+                        significant_genes_centroids_network1[line_split[0]])
+                    common_significant_genes_dispersions_network1.append(
+                        significant_genes_dispersions_network1[line_split[0]])
+                    common_significant_genes_centroids_network2.append(float(line_split[8]))
+                    common_significant_genes_dispersions_network2.append(float(line_split[9]))
+    file_network2.close()
+    genes = set(genes)
     pylab.figure()
-    matplotlib_venn.venn2([set(f1p), set(f2p)], set_labels=[table1, table2])
+    matplotlib_venn.venn2([set(significant_genes_network1), set(significant_genes_network2)], set_labels=[table1, table2])
     print "Overlap between significant genes (Fisher's exact test p-value): " + str(scipy.stats.fisher_exact(
-        [[len(set(f1p) & set(f2p)), len(set(f1p)) - len(set(f1p) & set(f2p))],
-         [len(set(f2p)) - len(set(f1p) & set(f2p)),
-          len(total) + len(set(f1p) & set(f2p)) - len(set(f1p)) - len(set(f2p))]])[1])
-    if rooted:
+        numpy.array([[len(set(significant_genes_network1) & set(significant_genes_network2)),
+          len(set(significant_genes_network1)) - len(set(significant_genes_network1) & set(significant_genes_network2))],
+         [len(set(significant_genes_network2)) - len(set(significant_genes_network1) & set(significant_genes_network2)),
+          len(genes) + len(set(significant_genes_network1) & set(significant_genes_network2))
+          - len(set(significant_genes_network1)) - len(set(significant_genes_network2))]]))[1])
+    if is_rooted:
         pylab.figure()
-        pylab.scatter(fx, fy, alpha=0.2, s=8)
-        xt = numpy.linspace(int(min(fx + fy)), int(max(fx + fy) + 1), 10)
-        pylab.plot(xt, xt, 'k-')
-        pylab.xlim(int(min(fx + fy)), int(max(fx + fy)) + 1)
-        pylab.ylim(int(min(fx + fy)), int(max(fx + fy)) + 1)
+        pylab.scatter(common_significant_genes_centroids_network1,
+                      common_significant_genes_centroids_network2, alpha=0.2, s=8)
+        x = numpy.linspace(int(min(common_significant_genes_centroids_network1
+                                    + common_significant_genes_centroids_network2)),
+                            int(max(common_significant_genes_centroids_network1
+                                    + common_significant_genes_centroids_network2) + 1), 10)
+        pylab.plot(x, x, 'k-')
+        pylab.xlim(int(min(common_significant_genes_centroids_network1 + common_significant_genes_centroids_network2)),
+                   int(max(common_significant_genes_centroids_network1 + common_significant_genes_centroids_network2))
+                   + 1)
+        pylab.ylim(int(min(common_significant_genes_centroids_network1 + common_significant_genes_centroids_network2)),
+                   int(max(common_significant_genes_centroids_network1 + common_significant_genes_centroids_network2))
+                   + 1)
         pylab.xlabel('Centroids ' + table1)
         pylab.ylabel('Centroids ' + table2)
-        print "Pearson's correlation between centroids: " + str(scipy.stats.pearsonr(fx, fy))
+        print "Pearson's correlation between centroids: " \
+              + str(scipy.stats.pearsonr(common_significant_genes_centroids_network1,
+                                         common_significant_genes_centroids_network2))
         pylab.figure()
-        pylab.scatter(gx, gy, alpha=0.2, s=8)
-        xt = numpy.linspace(int(min(gx + gy)), int(max(gx + gy)) + 1, 10)
-        pylab.plot(xt, xt, 'k-')
-        pylab.xlim(int(min(gx + gy)), int(max(gx + gy)) + 1)
-        pylab.ylim(int(min(gx + gy)), int(max(gx + gy)) + 1)
+        pylab.scatter(common_significant_genes_dispersions_network1, common_significant_genes_dispersions_network2,
+                      alpha=0.2, s=8)
+        x = numpy.linspace(int(min(common_significant_genes_dispersions_network1
+                                   + common_significant_genes_dispersions_network2)),
+                           int(max(common_significant_genes_dispersions_network1
+                                   + common_significant_genes_dispersions_network2)) + 1, 10)
+        pylab.plot(x, x, 'k-')
+        pylab.xlim(int(min(common_significant_genes_dispersions_network1
+                           + common_significant_genes_dispersions_network2)),
+                   int(max(common_significant_genes_dispersions_network1
+                           + common_significant_genes_dispersions_network2)) + 1)
+        pylab.ylim(int(min(common_significant_genes_dispersions_network1
+                           + common_significant_genes_dispersions_network2)),
+                   int(max(common_significant_genes_dispersions_network1
+                           + common_significant_genes_dispersions_network2)) + 1)
         pylab.xlabel('Dispersion ' + table1)
         pylab.ylabel('Dispersion ' + table2)
-        print "Pearson's correlation between dispersions: " + str(scipy.stats.pearsonr(gx, gy))
+        print "Pearson's correlation between dispersions: " \
+              + str(scipy.stats.pearsonr(common_significant_genes_dispersions_network1,
+                                         common_significant_genes_dispersions_network2))
     pylab.show()
 
 
