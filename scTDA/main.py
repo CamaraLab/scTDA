@@ -179,13 +179,16 @@ def compare_results(table1, table2, threshold=0.05):
     file_network2.close()
     genes = set(genes)
     pylab.figure()
-    matplotlib_venn.venn2([set(significant_genes_network1), set(significant_genes_network2)], set_labels=[table1, table2])
+    matplotlib_venn.venn2([set(significant_genes_network1), set(significant_genes_network2)],
+                          set_labels=[table1, table2])
     print "Overlap between significant genes (Fisher's exact test p-value): " + str(scipy.stats.fisher_exact(
         numpy.array([[len(set(significant_genes_network1) & set(significant_genes_network2)),
-          len(set(significant_genes_network1)) - len(set(significant_genes_network1) & set(significant_genes_network2))],
-         [len(set(significant_genes_network2)) - len(set(significant_genes_network1) & set(significant_genes_network2)),
-          len(genes) + len(set(significant_genes_network1) & set(significant_genes_network2))
-          - len(set(significant_genes_network1)) - len(set(significant_genes_network2))]]))[1])
+                      len(set(significant_genes_network1))
+                      - len(set(significant_genes_network1) & set(significant_genes_network2))],
+                     [len(set(significant_genes_network2))
+                      - len(set(significant_genes_network1) & set(significant_genes_network2)),
+                      len(genes) + len(set(significant_genes_network1) & set(significant_genes_network2))
+                      - len(set(significant_genes_network1)) - len(set(significant_genes_network2))]]))[1])
     if is_rooted:
         pylab.figure()
         pylab.scatter(common_significant_genes_centroids_network1,
