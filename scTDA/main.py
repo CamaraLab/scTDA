@@ -1,7 +1,7 @@
 """"
 scTDA. Library for topological data analysis of high-throughput single-cell RNA-seq data.
 
-Copyright 2017, Pablo G. Camara, Columbia University. All rights reserved.
+Copyright 2017, Pablo G. Camara. All rights reserved.
 
 """
 
@@ -46,47 +46,48 @@ GLOBAL METHODS
 def ParseAyasdiGraph(name, source, lab, user, password):
     """
     Parses Ayasdi graph given by 'source' ID and 'lab' ID, and generates files name.gexf, name.json and
-    name.groups.json that are used by SCTDA classes. Arguments 'user' and 'password' specify Ayasdi login credentials.
+    name.groups.json that are used by scTDA classes. Arguments 'user' and 'password' specify Ayasdi login credentials.
     """
-    headers = {"Content-type": "application/json"}
     session = requests.Session()
     session.post('https://platform.ayasdi.com/workbench/login', data={'username': user, 'passphrase': password},
                  verify=False)
-    r = session.get('https://platform.ayasdi.com/workbench/v0/sources/' + source + '/networks/' + lab)
-    sp = json.loads(r.content)
-    rows = [int(x['id']) for x in sp['nodes']]
-    dic2 = {}
-    for i in rows:
-        payload = {"network_nodes_descriptions": [{"network_id": lab, "node_ids": [i]}]}
-        r = session.post('https://platform.ayasdi.com/workbench/v0/sources/' + source + '/retrieve_row_indices',
-                         data=json.dumps(payload), headers=headers)
-        dic2[i] = json.loads(r.content)['row_indices']
-    with open(name + '.json', 'wb') as handle3:
-        json.dump(dic2, handle3)
-    rowcount = []
-    with open(name + '.gexf', 'w') as g:
-        g.write('<?xml version="1.0" encoding="UTF-8"?>\n')
-        g.write('<gexf xmlns="http://www.gexf.net/1.2draft" version="1.2">\n')
-        g.write('\t<graph mode="static" defaultedgetype="undirected">\n')
-        g.write('\t\t<nodes>\n')
-        for nod in sp['nodes']:
-            g.write('\t\t\t<node id="' + str(nod['id']) + '" label="' + str(nod['row_count']) + '" />\n')
-            rowcount.append(float(nod['row_count']))
-        g.write('\t\t</nodes>\n')
-        g.write('\t\t<edges>\n')
-        for n5, edg in enumerate(sp['links']):
-            g.write('\t\t\t<edge id="' + str(n5) + '" source="' + str(edg['from']) + '" target="' + str(edg['to'])
-                    + '" />\n')
-        g.write('\t\t</edges>\n')
-        g.write('\t</graph>\n')
-        g.write('</gexf>\n')
-    r = session.get('https://platform.ayasdi.com/workbench/v0/sources/' + source + '/networks/' + lab + '/node_groups')
-    sp = json.loads(r.content)
-    dicgroups = {}
-    for m in sp:
-        dicgroups[m['name']] = m['node_ids']
-    with open(name + '.groups.json', 'wb') as handle3:
-        json.dump(dicgroups, handle3)
+    output_network = session.get('https://platform.ayasdi.com/workbench/v0/sources/' + source + '/networks/' + lab)
+    network = json.loads(output_network.content)
+    nodes_ids = [int(node['id']) for node in network['nodes']]
+    nodes_contents = {}
+    for node_id in nodes_ids:
+        output_node = session.post('https://platform.ayasdi.com/workbench/v0/sources/' + source + '/retrieve_row_indices',
+                         data=json.dumps({"network_nodes_descriptions": [{"network_id": lab, "node_ids": [node_id]}]}),
+                                      headers={"Content-type": "application/json"})
+        nodes_contents[node_id] = json.loads(output_node.content)['row_indices']
+    with open(name + '.json', 'wb') as network_json_file:
+        json.dump(nodes_contents, network_json_file)
+    nodes_sizes = []
+    with open(name + '.gexf', 'w') as network_gexf_file:
+        network_gexf_file.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+        network_gexf_file.write('<gexf xmlns="http://www.gexf.net/1.2draft" version="1.2">\n')
+        network_gexf_file.write('\t<graph mode="static" defaultedgetype="undirected">\n')
+        network_gexf_file.write('\t\t<nodes>\n')
+        for nod in network['nodes']:
+            network_gexf_file.write('\t\t\t<node id="' + str(nod['id']) +
+                                    '" label="' + str(nod['row_count']) + '" />\n')
+            nodes_sizes.append(float(nod['row_count']))
+        network_gexf_file.write('\t\t</nodes>\n')
+        network_gexf_file.write('\t\t<edges>\n')
+        for edge_index, edge in enumerate(network['links']):
+            network_gexf_file.write('\t\t\t<edge id="' + str(edge_index) + '" source="' + str(edge['from']) +
+                                    '" target="' + str(edge['to']) + '" />\n')
+        network_gexf_file.write('\t\t</edges>\n')
+        network_gexf_file.write('\t</graph>\n')
+        network_gexf_file.write('</gexf>\n')
+    output_node_groups = session.get('https://platform.ayasdi.com/workbench/v0/sources/' + source +
+                                     '/networks/' + lab + '/node_groups')
+    node_groups = json.loads(output_node_groups.content)
+    groups = {}
+    for m in node_groups:
+        groups[m['name']] = m['node_ids']
+    with open(name + '.groups.json', 'wb') as network_groups_file:
+        json.dump(groups, network_groups_file)
 
 
 def benjamini_hochberg(pvalues):
@@ -95,24 +96,24 @@ def benjamini_hochberg(pvalues):
     http://stackoverflow.com/questions/7450957/how-to-implement-rs-p-adjust-in-python. Not subjected
     to copyright.
     """
-    pvalues = numpy.array(pvalues)
-    n = float(pvalues.shape[0])
-    new_pvalues = numpy.empty(int(n))
-    values = [(pvalue, i) for i, pvalue in enumerate(pvalues)]
-    values.sort()
-    values.reverse()
-    new_values = []
-    for i, vals in enumerate(values):
-        rank = n - i
-        pvalue, index = vals
-        new_values.append((n/rank) * pvalue)
-    for i in xrange(0, int(n)-1):
-        if new_values[i] < new_values[i+1]:
-            new_values[i+1] = new_values[i]
-    for i, vals in enumerate(values):
-        pvalue, index = vals
-        new_pvalues[index] = new_values[i]
-    return list(new_pvalues)
+    p_values = numpy.array(pvalues)
+    number_of_p_values = float(p_values.shape[0])
+    q_values = numpy.empty(int(number_of_p_values))
+    pairs = [(p_value, p_value_index) for p_value_index, p_value in enumerate(p_values)]
+    pairs.sort()
+    pairs.reverse()
+    pre_q_values = []
+    for pair_index, pair in enumerate(pairs):
+        rank = number_of_p_values - pair_index
+        p_value, _ = pair
+        pre_q_values.append((number_of_p_values/rank) * p_value)
+    for q_value_index in xrange(0, int(number_of_p_values)-1):
+        if pre_q_values[q_value_index] < pre_q_values[q_value_index+1]:
+            pre_q_values[q_value_index+1] = pre_q_values[q_value_index]
+    for pair_index, pair in enumerate(pairs):
+        p_value, index = pair
+        q_values[index] = pre_q_values[pair_index]
+    return list(q_values)
 
 
 def is_number(s):
