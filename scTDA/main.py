@@ -242,37 +242,36 @@ def hierarchical_clustering(mat, method='average', cluster_distance=True, labels
     http://stackoverflow.com/questions/7664826/how-to-get-flat-clustering-corresponding-to-color-clusters-in-the-dendrogram-cre
     Not subjected to copyright.
     """
-    D = numpy.array(mat)
+    distance_matrix = numpy.array(mat)
     if not cluster_distance:
-        Dtriangle = scipy.spatial.distance.squareform(D)
+        scipy_distance_matrix = scipy.spatial.distance.squareform(distance_matrix)
     else:
-        Dtriangle = scipy.spatial.distance.pdist(D, metric='euclidean')
+        scipy_distance_matrix = scipy.spatial.distance.pdist(distance_matrix, metric='euclidean')
     fig = pylab.figure(figsize=(8, 8))
-    ax1 = fig.add_axes([0.09, 0.1, 0.2, 0.6])
-    Y = sch.linkage(Dtriangle, method=method)
-    Z1 = sch.dendrogram(Y, orientation='right', color_threshold=thres*max(Y[:, 2]))
-    ax1.set_xticks([])
-    ax1.set_yticks([])
-    ax2 = fig.add_axes([0.3, 0.71, 0.6, 0.2])
-    Y = sch.linkage(Dtriangle, method=method)
-    Z2 = sch.dendrogram(Y, color_threshold=thres*max(Y[:, 2]))
-    ax2.set_xticks([])
-    ax2.set_yticks([])
-    axmatrix = fig.add_axes([0.3, 0.1, 0.6, 0.6])
-    idx1 = Z1['leaves']
-    idx2 = Z2['leaves']
-    D = D[idx1, :]
-    D = D[:, idx2]
-    im = axmatrix.matshow(D, aspect='auto', origin='lower', cmap=pylab.get_cmap('jet_r'))
+    axes_left_dendrogram = fig.add_axes([0.09, 0.1, 0.2, 0.6])
+    linkage = sch.linkage(scipy_distance_matrix, method=method)
+    left_dendrogram = sch.dendrogram(linkage, orientation='right', color_threshold=thres*max(linkage[:, 2]))
+    axes_left_dendrogram.set_xticks([])
+    axes_left_dendrogram.set_yticks([])
+    axes_top_dendrogram = fig.add_axes([0.3, 0.71, 0.6, 0.2])
+    top_dendrogram = sch.dendrogram(linkage, color_threshold=thres*max(linkage[:, 2]))
+    axes_top_dendrogram.set_xticks([])
+    axes_top_dendrogram.set_yticks([])
+    axes_heatmap = fig.add_axes([0.3, 0.1, 0.6, 0.6])
+    index_left = left_dendrogram['leaves']
+    index_top = top_dendrogram['leaves']
+    distance_matrix = distance_matrix[index_left, :]
+    distance_matrix = distance_matrix[:, index_top]
+    heatmap = axes_heatmap.matshow(distance_matrix, aspect='auto', origin='lower', cmap=pylab.get_cmap('jet_r'))
     if labels is None:
-        axmatrix.set_xticks([])
-        axmatrix.set_yticks([])
+        axes_heatmap.set_xticks([])
+        axes_heatmap.set_yticks([])
     else:
-        axmatrix.set_xticks(range(len(labels)))
-        lab = [labels[idx1[m]] for m in range(len(labels))]
-        axmatrix.set_xticklabels(lab)
-        axmatrix.set_yticks(range(len(labels)))
-        axmatrix.set_yticklabels(lab)
+        axes_heatmap.set_xticks(range(len(labels)))
+        labels_ordered = [labels[index_left[m]] for m in range(len(labels))]
+        axes_heatmap.set_xticklabels(labels_ordered)
+        axes_heatmap.set_yticks(range(len(labels)))
+        axes_heatmap.set_yticklabels(labels_ordered)
         for tick in pylab.gca().xaxis.iter_ticks():
             tick[0].label2On = False
             tick[0].label1On = True
@@ -280,22 +279,24 @@ def hierarchical_clustering(mat, method='average', cluster_distance=True, labels
         for tick in pylab.gca().yaxis.iter_ticks():
             tick[0].label2On = True
             tick[0].label1On = False
-    axcolor = fig.add_axes([0.91, 0.1, 0.02, 0.6])
-    pylab.colorbar(im, cax=axcolor)
+    axes_colorbar = fig.add_axes([0.91, 0.1, 0.02, 0.6])
+    pylab.colorbar(heatmap, cax=axes_colorbar)
     pylab.show()
-    return Z1
+    return left_dendrogram
 
 
 def find_clusters(z):
-    clus = {}
-    for y, m in enumerate(z['dcoord']):
-        for n, q in enumerate(m):
-            if q == 0.0:
-                if z['color_list'][y] not in clus.keys():
-                    clus[z['color_list'][y]] = [z['leaves'][int((z['icoord'][y][n]-5.0)/10.0)]]
+    clusters = {}
+    for level_index, level in enumerate(z['dcoord']):
+        for leaf_index, leaf in enumerate(level):
+            if leaf == 0.0:
+                if z['color_list'][level_index] not in clusters.keys():
+                    clusters[z['color_list'][level_index]] = \
+                        [z['leaves'][int((z['icoord'][level_index][leaf_index]-5.0)/10.0)]]
                 else:
-                    clus[z['color_list'][y]].append(z['leaves'][int((z['icoord'][y][n]-5.0)/10.0)])
-    return clus
+                    clusters[z['color_list'][level_index]].append(z['leaves'][int((z['icoord'][level_index][leaf_index]
+                                                                                   -5.0)/10.0)])
+    return clusters
 
 
 """
@@ -315,80 +316,86 @@ class Preprocess(object):
         ('libs'), as well as the number of cells per file ('cells'), which can be a list, and the common identifier
         for the RNA spike-in reads ('spike'). The order of the genes must be the same in all files.
         """
-        self.sigmoid = False
-        self.cdr = []
-        self.residuals = {}
-        self.subsampled = False
-        self.target_subsample = 0.0
-        self.data = []
-        self.spike = spike
+        self.has_sigmoid_fit = False
+        self.complexity = []
+        self.sigmoid_fit_residuals = {}
+        self.is_subsampled = False
+        self.target_number_of_transcripts = 0.0
+        self.transcript_counts_flatten = []
+        self.spike_prefix = spike
         if type(cells) != list:
-            self.len = [cells]*len(files)
+            self.number_of_cells_in_file = [cells] * len(files)
         else:
-            self.len = cells
-        self.fil = files
-        self.long = list(numpy.repeat(timepoints, self.len))
-        self.batch = list(numpy.repeat(libs, self.len))
-        self.cal = []
-        self.cal2 = []
-        self.tal = {}
-        totalspikes = {}
-        self.totaltransc = {}
-        self.spikes_ratio = {}
-        self.data_spikes = []
-        datat = {}
-        qft = {}
-        self.genes = []
-        self.totaltran = []
-        for nn, f in enumerate(self.fil):
-            carma = []
-            totalspikes[f] = numpy.zeros(self.len[nn])
-            self.totaltransc[f] = numpy.zeros(self.len[nn])
-            self.spikes_ratio[f] = numpy.zeros(self.len[nn])
-            datat[f] = []
-            qft[f] = []
-            fol = open(f, 'r')
-            qty = 0
-            for line in fol:
-                sp = line[:-1].split('\t')
-                q = numpy.array(map(lambda x: float(x), sp[1:]))
-                if spike in sp[0]:
-                    qft[f].append(q)
-                    totalspikes[f] += q
-                    if numpy.mean(q) > 0.0:
-                        carma.append(q/numpy.mean(q))
-                    qty += 1
+            self.number_of_cells_in_file = cells
+        self.file_names = files
+        self.long = list(numpy.repeat(timepoints, self.number_of_cells_in_file))
+        self.batch = list(numpy.repeat(libs, self.number_of_cells_in_file))
+        self.spike_transcript_counts_normalized_means_per_cell_flatten = []
+        self.spike_counts_ratio_flatten = []
+        self.spike_transcript_counts_normalized_means_per_cell_dict = {}
+        spike_transcript_total_counts = {}
+        self.transcript_total_counts = {}
+        self.spike_counts_ratio = {}
+        self.spike_transcript_counts_flatten = []
+        transcript_counts = {}
+        spike_transcript_counts = {}
+        self.gene_names = []
+        self.transcript_total_counts_flatten = []
+        for file_name_index, file_name in enumerate(self.file_names):
+            spike_transcript_counts_normalized = []
+            spike_transcript_total_counts[file_name] = numpy.zeros(self.number_of_cells_in_file[file_name_index])
+            self.transcript_total_counts[file_name] = numpy.zeros(self.number_of_cells_in_file[file_name_index])
+            self.spike_counts_ratio[file_name] = numpy.zeros(self.number_of_cells_in_file[file_name_index])
+            transcript_counts[file_name] = []
+            spike_transcript_counts[file_name] = []
+            file = open(file_name, 'r')
+            spike_counter = 0
+            for line in file:
+                line_split = line[:-1].split('\t')
+                transcript_counts_line = numpy.array(map(lambda x: float(x), line_split[1:]))
+                if spike in line_split[0]:
+                    spike_transcript_counts[file_name].append(transcript_counts_line)
+                    spike_transcript_total_counts[file_name] += transcript_counts_line
+                    if numpy.mean(transcript_counts_line) > 0.0:
+                        spike_transcript_counts_normalized.append(transcript_counts_line/numpy.mean(
+                            transcript_counts_line))
+                    spike_counter += 1
                 else:
-                    self.totaltransc[f] += q
-                    datat[f].append(q)
-                    if nn == 0:
-                        self.genes.append(sp[0])
+                    self.transcript_total_counts[file_name] += transcript_counts_line
+                    transcript_counts[file_name].append(transcript_counts_line)
+                    if file_name_index == 0:
+                        self.gene_names.append(line_split[0])
             if spike != '_null_':
-                self.spikes_ratio[f] = totalspikes[f]/self.totaltransc[f]
-                self.cal2 += list(self.spikes_ratio[f])
-            fol.close()
-            factors = []
-            for k in numpy.transpose(numpy.array(carma)):
-                factors.append(numpy.mean(k))
-            self.cal += factors
-            self.tal[f] = factors
-            self.totaltran += list(self.totaltransc[f])
-            self.data += list(numpy.transpose(numpy.array(datat[f])))
-            self.data_spikes += list(numpy.transpose(numpy.array(qft[f])))
-        for m in self.data:
-            self.cdr.append(len(m)-list(m).count(0.0))
-        self.totaltran = numpy.array(self.totaltran)
-        self.data = numpy.transpose(numpy.array(self.data))
-        self.data_spikes = numpy.transpose(numpy.array(self.data_spikes))
-        self.which_genes = numpy.ones(len(self.data), dtype=bool)
-        self.which_samples = numpy.ones(len(self.data[0]), dtype=bool)
-        self.which_samples_subsampled = numpy.ones(len(self.data[0]), dtype=bool)
-        self.which_samples_backup = numpy.ones(len(self.data[0]), dtype=bool)
-        self.data_subsampled = self.data
-        self.cdr_subsampled = self.cdr
-        self.q = numpy.log2(1.0+1.0e6*self.data/self.totaltran)
-        self.q = self.q[self.q > 0.0]
-        self.genes = numpy.array(self.genes)
+                self.spike_counts_ratio[file_name] = spike_transcript_total_counts[file_name] / \
+                                                     self.transcript_total_counts[file_name]
+                self.spike_counts_ratio_flatten += list(self.spike_counts_ratio[file_name])
+            file.close()
+            spike_transcript_counts_normalized_means_per_cell = []
+            for spike_transcript_counts_normalized_cell in \
+                    numpy.transpose(numpy.array(spike_transcript_counts_normalized)):
+                spike_transcript_counts_normalized_means_per_cell.append(numpy.mean(
+                    spike_transcript_counts_normalized_cell))
+            self.spike_transcript_counts_normalized_means_per_cell_flatten += \
+                spike_transcript_counts_normalized_means_per_cell
+            self.spike_transcript_counts_normalized_means_per_cell_dict[file_name] = \
+                spike_transcript_counts_normalized_means_per_cell
+            self.transcript_total_counts_flatten += list(self.transcript_total_counts[file_name])
+            self.transcript_counts_flatten += list(numpy.transpose(numpy.array(transcript_counts[file_name])))
+            self.spike_transcript_counts_flatten += list(numpy.transpose(numpy.array(spike_transcript_counts[file_name])))
+        for gene_transcript_counts in self.transcript_counts_flatten:
+            self.complexity.append(len(gene_transcript_counts) - list(gene_transcript_counts).count(0.0))
+        self.transcript_total_counts_flatten = numpy.array(self.transcript_total_counts_flatten)
+        self.transcript_counts_flatten = numpy.transpose(numpy.array(self.transcript_counts_flatten))
+        self.spike_transcript_counts_flatten = numpy.transpose(numpy.array(self.spike_transcript_counts_flatten))
+        self.which_genes = numpy.ones(len(self.transcript_counts_flatten), dtype=bool)
+        self.which_cells = numpy.ones(len(self.transcript_counts_flatten[0]), dtype=bool)
+        self.which_cells_subsampled = numpy.ones(len(self.transcript_counts_flatten[0]), dtype=bool)
+        self.which_cells_backup = numpy.ones(len(self.transcript_counts_flatten[0]), dtype=bool)
+        self.transcript_counts_flatten_subsampled = self.transcript_counts_flatten
+        self.complexity_subsampled = self.complexity
+        self.tpms = numpy.log2(1.0 + 1.0e6 * self.transcript_counts_flatten / self.transcript_total_counts_flatten)
+        self.tpms = self.tpms[self.tpms > 0.0]
+        self.gene_names = numpy.array(self.gene_names)
 
     def subsample(self, n):
         """
@@ -397,33 +404,37 @@ class Preprocess(object):
         the analysis. Preprocess.which_samples indicates the cells that are kept in the analysis.
         """
         if n > 0:
-            self.subsampled = True
-            self.target_subsample = float(n)
-            self.which_samples_subsampled = (self.totaltran >= n)
-            self.which_samples = self.which_samples_subsampled & self.which_samples_backup
-            probs = self.data/self.totaltran
-            for nn2, m in enumerate(list(self.which_samples)):
-                if not m:
-                    probs[nn2] = 0.0
-            self.data_subsampled = []
-            self.cdr_subsampled = []
-            for rn in range(self.data.shape[1]):
-                if self.which_samples_subsampled[rn]:
-                    self.data_subsampled.append(numpy.random.multinomial(n, probs[:, rn]))
+            self.is_subsampled = True
+            self.target_number_of_transcripts = float(n)
+            self.which_cells_subsampled = (self.transcript_total_counts_flatten >= n)
+            self.which_cells = self.which_cells_subsampled & self.which_cells_backup
+            transcript_counts_normalized_flatten = self.transcript_counts_flatten / self.transcript_total_counts_flatten
+            for cell_index, has_cell in enumerate(list(self.which_cells)):
+                if not has_cell:
+                    transcript_counts_normalized_flatten[cell_index] = 0.0
+            self.transcript_counts_flatten_subsampled = []
+            self.complexity_subsampled = []
+            for cell_index in range(self.transcript_counts_flatten.shape[1]):
+                if self.which_cells_subsampled[cell_index]:
+                    self.transcript_counts_flatten_subsampled.append(
+                        numpy.random.multinomial(n, transcript_counts_normalized_flatten[:, cell_index]))
                 else:
-                    self.data_subsampled.append(numpy.zeros(len(probs[:, rn])))
-                m = self.data_subsampled[-1]
-                self.cdr_subsampled.append(len(m)-list(m).count(0.0))
-            self.data_subsampled = numpy.transpose(numpy.array(self.data_subsampled))
+                    self.transcript_counts_flatten_subsampled.append(
+                        numpy.zeros(len(transcript_counts_normalized_flatten[:, cell_index])))
+                last_cell_transcript_counts_flatten_subsampled = self.transcript_counts_flatten_subsampled[-1]
+                self.complexity_subsampled.append(len(last_cell_transcript_counts_flatten_subsampled)
+                                                  - list(last_cell_transcript_counts_flatten_subsampled).count(0.0))
+            self.transcript_counts_flatten_subsampled = \
+                numpy.transpose(numpy.array(self.transcript_counts_flatten_subsampled))
         else:
-            self.subsampled = False
-            self.data_subsampled = self.data
-            self.cdr_subsampled = self.cdr
-            self.target_subsample = 0.0
-            self.which_samples = self.which_samples_backup
-            self.which_samples_subsampled = numpy.ones(len(self.data[0]), dtype=bool)
-        self.sigmoid = False
-        print str(int(list(self.which_samples).count(True))) + ' cells remain after subsmapling'
+            self.is_subsampled = False
+            self.transcript_counts_flatten_subsampled = self.transcript_counts_flatten
+            self.complexity_subsampled = self.complexity
+            self.target_number_of_transcripts = 0.0
+            self.which_cells = self.which_cells_backup
+            self.which_cells_subsampled = numpy.ones(len(self.transcript_counts_flatten[0]), dtype=bool)
+        self.has_sigmoid_fit = False
+        print str(int(list(self.which_cells).count(True))) + ' cells remain after subsmapling'
 
     def show_statistics(self):
         """
@@ -436,75 +447,78 @@ class Preprocess(object):
         complexity across cells. When subsampling and/or cell filtering have been performed, the corresponding
         plots for the subsampled data are overlaid in red.
         """
-        if self.spike != '_null_':
-            col = []
-            for m in list(self.which_samples):
-                if m and list(self.which_samples).count(False) > 0:
-                    col.append('r.')
+        if self.spike_prefix != '_null_':
+            cell_color = []
+            for gene_transcript_counts in list(self.which_cells):
+                if gene_transcript_counts and list(self.which_cells).count(False) > 0:
+                    cell_color.append('r.')
                 else:
-                    col.append('b.')
+                    cell_color.append('b.')
             pylab.figure()
-            for n in range(len(self.cal)):
-                pylab.plot(self.cal[n], self.cal2[n], col[n], alpha=0.6)
+            for cell_index in range(len(self.spike_transcript_counts_normalized_means_per_cell_flatten)):
+                pylab.plot(self.spike_transcript_counts_normalized_means_per_cell_flatten[cell_index],
+                           self.spike_counts_ratio_flatten[cell_index], cell_color[cell_index], alpha=0.6)
             pylab.yscale('log')
             pylab.xlabel('Spike-in reads / average spike-in reads library')
             pylab.ylabel('Spike-in reads / uniquely mapped reads')
         pylab.figure()
-        pylab.hist(self.q, 100, alpha=0.6, color='b')
-        if self.subsampled:
-            datatt = self.data_subsampled[:, self.which_samples]
+        pylab.hist(self.tpms, 100, alpha=0.6, color='b')
+        if self.is_subsampled:
+            transcript_counts_flatten_masked = self.transcript_counts_flatten_subsampled[:, self.which_cells]
         else:
-            datatt = self.data[:, self.which_samples]
-        if list(self.which_samples).count(False) > 0 or self.subsampled:
-            if self.subsampled:
-                q2 = numpy.log2(1.0+1.0e6*datatt/self.target_subsample)
+            transcript_counts_flatten_masked = self.transcript_counts_flatten[:, self.which_cells]
+        if list(self.which_cells).count(False) > 0 or self.is_subsampled:
+            if self.is_subsampled:
+                tpms_masked = numpy.log2(1.0 + 1.0e6 * transcript_counts_flatten_masked / self.target_number_of_transcripts)
             else:
-                q2 = numpy.log2(1.0+1.0e6*datatt/self.totaltran[self.which_samples])
-            q2 = q2[q2 > 0.0]
-            pylab.hist(q2, 100, alpha=0.8, color='r')
+                tpms_masked = numpy.log2(1.0 + 1.0e6 * transcript_counts_flatten_masked /
+                                self.transcript_total_counts_flatten[self.which_cells])
+            tpms_masked = tpms_masked[tpms_masked > 0.0]
+            pylab.hist(tpms_masked, 100, alpha=0.8, color='r')
         pylab.xlabel('log_2 (1 + TPM)')
         pylab.figure()
         x = []
         y = []
-        for m in list(self.data):
-            x.append(float(list(m).count(0.0))/float(len(m)))
-            y.append(numpy.mean(m))
+        for gene_transcript_counts in list(self.transcript_counts_flatten):
+            x.append(float(list(gene_transcript_counts).count(0.0))/float(len(gene_transcript_counts)))
+            y.append(numpy.mean(gene_transcript_counts))
         pylab.scatter(y, x, alpha=0.2, s=5, c='b')
-        if list(self.which_samples).count(False) > 0 or self.subsampled:
-            xs = []
-            ys = []
-            for m in list(self.data_subsampled[:, self.which_samples]):
-                xs.append(float(list(m).count(0.0))/float(len(m)))
-                ys.append(numpy.mean(m))
-            pylab.scatter(ys, xs, alpha=0.7, s=5, c='r')
-        if self.spike != '_null_':
-            xsp = []
-            ysp = []
-            for m in list(self.data_spikes):
-                xsp.append(float(list(m).count(0.0))/float(len(m)))
-                ysp.append(numpy.mean(m))
-            pylab.scatter(ysp, xsp, alpha=0.7, s=10, c='y')
+        if list(self.which_cells).count(False) > 0 or self.is_subsampled:
+            x_selected_cells = []
+            y_selected_cells = []
+            for gene_transcript_counts in list(self.transcript_counts_flatten_subsampled[:, self.which_cells]):
+                x_selected_cells.append(float(list(gene_transcript_counts).count(0.0))/
+                                        float(len(gene_transcript_counts)))
+                y_selected_cells.append(numpy.mean(gene_transcript_counts))
+            pylab.scatter(y_selected_cells, x_selected_cells, alpha=0.7, s=5, c='r')
+        if self.spike_prefix != '_null_':
+            x_spikes = []
+            y_spikes = []
+            for gene_transcript_counts in list(self.spike_transcript_counts_flatten):
+                x_spikes.append(float(list(gene_transcript_counts).count(0.0))/float(len(gene_transcript_counts)))
+                y_spikes.append(numpy.mean(gene_transcript_counts))
+            pylab.scatter(y_spikes, x_spikes, alpha=0.7, s=10, c='y')
         pylab.xscale('log')
         pylab.ylim(-0.05, 1.05)
         pylab.xlim(min(numpy.array(y)[numpy.array(y) > 0]), max(y))
         pylab.xlabel('Average transcripts per cell')
         pylab.ylabel('Fraction of cells with non-detected expression')
         pylab.figure()
-        pylab.hist(numpy.log10(self.totaltran[self.totaltran > 0.0]),
+        pylab.hist(numpy.log10(self.transcript_total_counts_flatten[self.transcript_total_counts_flatten > 0.0]),
                    30, alpha=0.6, color='g')
         pylab.xlabel('Total number of transcripts in the cell')
         pylab.figure()
-        pylab.hist(self.cdr, 30, alpha=0.6, color='y')
-        if list(self.which_samples).count(False) > 0 or self.subsampled:
-            pylab.hist(numpy.array(self.cdr_subsampled)[self.which_samples], 30, alpha=0.6, color='r')
+        pylab.hist(self.complexity, 30, alpha=0.6, color='y')
+        if list(self.which_cells).count(False) > 0 or self.is_subsampled:
+            pylab.hist(numpy.array(self.complexity_subsampled)[self.which_cells], 30, alpha=0.6, color='r')
         pylab.xlabel('Cell complexity')
         print 'Minimum number of transcripts per cell: ' + \
-              str(int(min(self.totaltran[self.which_samples])))
-        print 'Minimum cell complexity: ' + str(int(min(numpy.array(self.cdr)[self.which_samples])))
-        if self.subsampled:
-            print 'Minimum number of transcripts per cell (subsampled): ' + str(int(self.target_subsample))
+              str(int(min(self.transcript_total_counts_flatten[self.which_cells])))
+        print 'Minimum cell complexity: ' + str(int(min(numpy.array(self.complexity)[self.which_cells])))
+        if self.is_subsampled:
+            print 'Minimum number of transcripts per cell (subsampled): ' + str(int(self.target_number_of_transcripts))
             print 'Minimum cell complexity (subsampled): ' + \
-                  str(int(min(numpy.array(self.cdr_subsampled)[self.which_samples])))
+                  str(int(min(numpy.array(self.complexity_subsampled)[self.which_cells])))
         pylab.show()
 
     def fit_sigmoid(self, to_spikes=False):
@@ -518,65 +532,74 @@ class Preprocess(object):
         def sigmoid(xt, x0, k):
             yt = 1 / (1 + numpy.exp(k*(xt-x0)))
             return yt
-        if to_spikes and self.spike != '_null_':
-            data = list(numpy.array(self.data_spikes)[:, numpy.array(self.which_samples)])
-            if self.subsampled:
-                datab = list(numpy.array(self.data_subsampled)[:, numpy.array(self.which_samples)])
+        if to_spikes and self.spike_prefix != '_null_':
+            spike_transcript_counts_flatten_masked = \
+                list(numpy.array(self.spike_transcript_counts_flatten)[:, numpy.array(self.which_cells)])
+            if self.is_subsampled:
+                spike_transcript_counts_flatten_subsampled_masked = \
+                    list(numpy.array(self.transcript_counts_flatten_subsampled)[:, numpy.array(self.which_cells)])
             else:
-                datab = list(numpy.array(self.data)[:, numpy.array(self.which_samples)])
-        elif self.subsampled:
-            data = list(numpy.array(self.data_subsampled)[:, self.which_samples])
+                spike_transcript_counts_flatten_subsampled_masked = \
+                    list(numpy.array(self.transcript_counts_flatten)[:, numpy.array(self.which_cells)])
+        elif self.is_subsampled:
+            spike_transcript_counts_flatten_masked = \
+                list(numpy.array(self.transcript_counts_flatten_subsampled)[:, self.which_cells])
         else:
-            data = numpy.array(self.data)[:, numpy.array(self.which_samples)]
+            spike_transcript_counts_flatten_masked = \
+                numpy.array(self.transcript_counts_flatten)[:, numpy.array(self.which_cells)]
         pylab.figure()
-        x = []
         y = []
-        for m in list(data):
-            if numpy.mean(m) > 0.0:
-                x.append(float(list(m).count(0.0))/float(len(m)))
-                y.append(numpy.mean(m))
-        ys_f = numpy.log10(numpy.array(y))
-        popt, pcov = scipy.optimize.curve_fit(sigmoid, ys_f, numpy.array(x))
-        xp = numpy.linspace(int(min(ys_f[ys_f > -numpy.infty])), int(max(ys_f))+1, 50)
-        yp = sigmoid(xp, *popt)
-        if to_spikes and self.spike != '_null_':
-            xb = []
-            yb = []
-            for m in list(datab):
-                xb.append(float(list(m).count(0.0))/float(len(m)))
-                yb.append(numpy.mean(m))
-            ys_fb = numpy.log10(numpy.array(yb))
-            pylab.scatter(ys_fb, xb, alpha=0.2, s=5, c='b')
+        x = []
+        for gene_transcript_counts in list(spike_transcript_counts_flatten_masked):
+            if numpy.mean(gene_transcript_counts) > 0.0:
+                y.append(float(list(gene_transcript_counts).count(0.0))/float(len(gene_transcript_counts)))
+                x.append(numpy.mean(gene_transcript_counts))
+        log_x = numpy.log10(numpy.array(x))
+        sigmoid_parameters, _ = scipy.optimize.curve_fit(sigmoid, log_x, numpy.array(y))
+        continuous_x = numpy.linspace(int(min(log_x[log_x > -numpy.infty])), int(max(log_x))+1, 50)
+        fitted_y = sigmoid(continuous_x, *sigmoid_parameters)
+        if to_spikes and self.spike_prefix != '_null_':
+            y_spikes = []
+            x_spikes = []
+            for gene_transcript_counts in list(spike_transcript_counts_flatten_subsampled_masked):
+                y_spikes.append(float(list(gene_transcript_counts).count(0.0))/float(len(gene_transcript_counts)))
+                x_spikes.append(numpy.mean(gene_transcript_counts))
+            log_x_spikes = numpy.log10(numpy.array(x_spikes))
+            pylab.scatter(log_x_spikes, y_spikes, alpha=0.2, s=5, c='b')
         else:
-            pylab.scatter(ys_f, x, alpha=0.2, s=5, c='b')
-        if self.spike != '_null_' and not self.subsampled:
-            xrt = []
-            yrt = []
-            for m in list(self.data_spikes[:, self.which_samples]):
-                xrt.append(float(list(m).count(0.0))/float(len(m)))
-                yrt.append(numpy.mean(m))
-            ys_frt = numpy.log10(numpy.array(yrt))
-            pylab.scatter(ys_frt, xrt, alpha=0.7, s=10, c='y')
-        pylab.plot(xp, yp, 'r-')
+            pylab.scatter(log_x, y, alpha=0.2, s=5, c='b')
+        if self.spike_prefix != '_null_' and not self.is_subsampled:
+            y_selected = []
+            x_selected = []
+            for gene_transcript_counts in list(self.spike_transcript_counts_flatten[:, self.which_cells]):
+                y_selected.append(float(list(gene_transcript_counts).count(0.0))/float(len(gene_transcript_counts)))
+                x_selected.append(numpy.mean(gene_transcript_counts))
+            log_x_selected = numpy.log10(numpy.array(x_selected))
+            pylab.scatter(log_x_selected, y_selected, alpha=0.7, s=10, c='y')
+        pylab.plot(continuous_x, fitted_y, 'r-')
         pylab.xlabel('Average transcripts per cell')
         pylab.ylabel('Fraction of cells with non-detected expression')
         pylab.ylim(-0.05, 1.05)
         pylab.figure()
-        self.residuals = {}
-        if to_spikes and self.spike != '_null_':
-            for n, (x1, y1) in enumerate(zip(list(ys_fb), xb)):
-                self.residuals[n] = y1 - sigmoid(x1, *popt)
+        self.sigmoid_fit_residuals = {}
+        if to_spikes and self.spike_prefix != '_null_':
+            for pair_index, (x1, y1) in enumerate(zip(list(log_x_spikes), y_spikes)):
+                self.sigmoid_fit_residuals[pair_index] = y1 - sigmoid(x1, *sigmoid_parameters)
         else:
-            for n, (x1, y1) in enumerate(zip(list(ys_f), x)):
-                self.residuals[n] = y1 - sigmoid(x1, *popt)
-        pylab.hist(self.residuals.values(), 200, normed=True)
-        xst = numpy.linspace(min(self.residuals.values()), max(self.residuals.values()), 1000)
-        sig = numpy.median(self.residuals.values())-numpy.percentile(self.residuals.values(), 16)
-        pylab.plot(xst, scipy.stats.norm.pdf(xst, numpy.median(self.residuals.values()), sig), 'r-')
+            for pair_index, (x1, y1) in enumerate(zip(list(log_x), y)):
+                self.sigmoid_fit_residuals[pair_index] = y1 - sigmoid(x1, *sigmoid_parameters)
+        pylab.hist(self.sigmoid_fit_residuals.values(), 200, normed=True)
+        x_continuous_residuals = numpy.linspace(min(self.sigmoid_fit_residuals.values()),
+                                                max(self.sigmoid_fit_residuals.values()), 1000)
+        width = numpy.median(self.sigmoid_fit_residuals.values()) \
+                - numpy.percentile(self.sigmoid_fit_residuals.values(), 16)
+        pylab.plot(x_continuous_residuals,
+                   scipy.stats.norm.pdf(x_continuous_residuals,
+                                        numpy.median(self.sigmoid_fit_residuals.values()), width), 'r-')
         pylab.xlabel('Residuals')
-        for m in self.residuals.keys():
-            self.residuals[m] /= sig
-        self.sigmoid = True
+        for gene_transcript_counts in self.sigmoid_fit_residuals.keys():
+            self.sigmoid_fit_residuals[gene_transcript_counts] /= width
+        self.has_sigmoid_fit = True
         pylab.show()
 
     def select_genes(self, n_cells=0, avg_counts=0.0, min_z=-numpy.infty):
@@ -587,52 +610,60 @@ class Preprocess(object):
         respect to the sigmoid fit. Needs to be run after fit_sigmoid if min_z is specified. If subsampling
         has been performed, it considers the subsampled dataset.
         """
-        if min_z > -numpy.infty and not self.sigmoid:
+        if min_z > -numpy.infty and not self.has_sigmoid_fit:
             print 'fit_sigmoid() needs to be run before selecting genes'
         else:
-            if self.subsampled:
-                data = self.data_subsampled[:, self.which_samples]
+            if self.is_subsampled:
+                transcript_counts_flatten_subsampled_masked = \
+                    self.transcript_counts_flatten_subsampled[:, self.which_cells]
             else:
-                data = self.data[:, self.which_samples]
-            col = []
-            x = []
+                transcript_counts_flatten_subsampled_masked = self.transcript_counts_flatten[:, self.which_cells]
+            genes_color = []
             y = []
+            x = []
             n = 0
-            for ng, m in enumerate(list(data)):
-                if numpy.mean(m) > 0.0:
-                    x.append(float(list(m).count(0.0))/float(len(m)))
-                    y.append(numpy.mean(m))
-                    if len(m)-list(m).count(0.0) >= n_cells and numpy.mean(m) >= avg_counts and self.residuals[n] >= min_z:
-                        self.which_genes[ng] = True
-                        col.append('r')
+            for gene_index, gene_transcript_counts_subsampled_masked in \
+                    enumerate(list(transcript_counts_flatten_subsampled_masked)):
+                if numpy.mean(gene_transcript_counts_subsampled_masked) > 0.0:
+                    y.append(float(list(gene_transcript_counts_subsampled_masked).count(0.0))/
+                             float(len(gene_transcript_counts_subsampled_masked)))
+                    x.append(numpy.mean(gene_transcript_counts_subsampled_masked))
+                    if len(gene_transcript_counts_subsampled_masked)-\
+                            list(gene_transcript_counts_subsampled_masked).count(0.0) >= \
+                            n_cells and numpy.mean(gene_transcript_counts_subsampled_masked) >= \
+                            avg_counts and self.sigmoid_fit_residuals[n] >= min_z:
+                        self.which_genes[gene_index] = True
+                        genes_color.append('r')
                     else:
-                        self.which_genes[ng] = False
-                        col.append('b')
+                        self.which_genes[gene_index] = False
+                        genes_color.append('b')
                     n += 1
                 else:
-                    self.which_genes[ng] = False
+                    self.which_genes[gene_index] = False
             pylab.figure()
-            ys_f = numpy.log10(numpy.array(y))
-            pylab.scatter(ys_f, x, alpha=0.5, s=5, c=col)
-            if self.spike != '_null_':
-                xrt = []
-                yrt = []
-                for m in list(self.data_spikes[:, self.which_samples]):
-                    xrt.append(float(list(m).count(0.0))/float(len(m)))
-                    yrt.append(numpy.mean(m))
-                ys_frt = numpy.log10(numpy.array(yrt))
-                pylab.scatter(ys_frt, xrt, alpha=0.7, s=10, c='y')
+            log_x = numpy.log10(numpy.array(x))
+            pylab.scatter(log_x, y, alpha=0.5, s=5, c=genes_color)
+            if self.spike_prefix != '_null_':
+                y_spikes = []
+                x_spikes = []
+                for gene_transcript_counts_subsampled_masked in \
+                        list(self.spike_transcript_counts_flatten[:, self.which_cells]):
+                    y_spikes.append(float(list(gene_transcript_counts_subsampled_masked).count(0.0))/
+                                    float(len(gene_transcript_counts_subsampled_masked)))
+                    x_spikes.append(numpy.mean(gene_transcript_counts_subsampled_masked))
+                log_x_spikes = numpy.log10(numpy.array(x_spikes))
+                pylab.scatter(log_x_spikes, y_spikes, alpha=0.7, s=10, c='y')
             pylab.xlabel('Average transcripts per cell')
             pylab.ylabel('Fraction of cells with non-detected expression')
             pylab.ylim(-0.05, 1.05)
-            print str(int(col.count('r'))) + " genes were selected"
+            print str(int(genes_color.count('r'))) + " genes were selected"
             pylab.show()
 
     def reset_genes(self):
         """
         Includes all genes in the analysis.
         """
-        self.which_genes = numpy.ones(len(self.data), dtype=bool)
+        self.which_genes = numpy.ones(len(self.transcript_counts_flatten), dtype=bool)
 
     def select_cells(self, min_transcripts=0.0, min_cdr=0.0, filterXlow=0.0, filterXhigh=1.0e8,
                      filterYlow=0.0, filterYhigh=1.0e8):
@@ -646,51 +677,51 @@ class Preprocess(object):
         in the conditions.
         """
         if (filterXlow != 0.0 or filterXhigh != 1.0e8 or
-                    filterYlow != 0.0 or filterYhigh != 1.0e8) and self.spike == '_null_':
+                    filterYlow != 0.0 or filterYhigh != 1.0e8) and self.spike_prefix == '_null_':
             print 'No spike-ins selected'
         else:
-            for n, (m, c) in enumerate(zip(list(self.totaltran), self.cdr)):
+            for n, (m, c) in enumerate(zip(list(self.transcript_total_counts_flatten), self.complexity)):
                 if m >= min_transcripts and c >= min_cdr:
-                    self.which_samples[n] = True & self.which_samples_subsampled[n]
-                    self.which_samples_backup[n] = True
+                    self.which_cells[n] = True & self.which_cells_subsampled[n]
+                    self.which_cells_backup[n] = True
                 else:
-                    self.which_samples[n] = False
-                    self.which_samples_backup[n] = False
-            if self.spike != '_null_':
+                    self.which_cells[n] = False
+                    self.which_cells_backup[n] = False
+            if self.spike_prefix != '_null_':
                 n1 = 0
-                for n, f in enumerate(self.fil):
-                    for nok in range(self.len[n]):
-                        if (filterXhigh > self.tal[f][nok] > filterXlow and
-                                        filterYlow < self.spikes_ratio[f][nok] < filterYhigh):
-                            self.which_samples[n1] &= True
-                            self.which_samples_backup[n1] &= True
+                for n, f in enumerate(self.file_names):
+                    for nok in range(self.number_of_cells_in_file[n]):
+                        if (filterXhigh > self.spike_transcript_counts_normalized_means_per_cell_dict[f][nok] > filterXlow and
+                                        filterYlow < self.spike_counts_ratio[f][nok] < filterYhigh):
+                            self.which_cells[n1] &= True
+                            self.which_cells_backup[n1] &= True
                         else:
-                            self.which_samples[n1] = False
-                            self.which_samples_backup[n1] = False
+                            self.which_cells[n1] = False
+                            self.which_cells_backup[n1] = False
                         n1 += 1
                 col = []
-                for m in self.which_samples:
+                for m in self.which_cells:
                     if m:
                         col.append('r.')
                     else:
                         col.append('b.')
                 pylab.figure()
-                for n in range(len(self.cal)):
-                    pylab.plot(self.cal[n], self.cal2[n], col[n], alpha=0.6)
+                for n in range(len(self.spike_transcript_counts_normalized_means_per_cell_flatten)):
+                    pylab.plot(self.spike_transcript_counts_normalized_means_per_cell_flatten[n], self.spike_counts_ratio_flatten[n], col[n], alpha=0.6)
                 pylab.yscale('log')
                 pylab.xlabel('spike-in reads / average spike-in reads library')
                 pylab.ylabel('spike-in reads / uniquely mapped reads')
                 pylab.show()
-            print str(int(list(self.which_samples_backup).count(True))) + " cells were selected"
-            if self.subsampled:
-                print '(' + str(int(list(self.which_samples).count(True))) + " cells after subsampling)"
+            print str(int(list(self.which_cells_backup).count(True))) + " cells were selected"
+            if self.is_subsampled:
+                print '(' + str(int(list(self.which_cells).count(True))) + " cells after subsampling)"
 
     def reset_cells(self):
         """
         Includes all cells in the analysis. If subsampling has been performed, it is taken into account.
         """
-        self.which_samples = self.which_samples_subsampled
-        self.which_samples_backup = numpy.ones(len(self.data[0]), dtype=bool)
+        self.which_cells = self.which_cells_subsampled
+        self.which_cells_backup = numpy.ones(len(self.transcript_counts_flatten[0]), dtype=bool)
 
     def save(self, name):
         """
@@ -704,57 +735,57 @@ class Preprocess(object):
         """
         g = open(name + '.all.tsv', 'w')
         p = 'ID\ttimepoint\tlib\t'
-        if self.subsampled:
-            data = self.data_subsampled
+        if self.is_subsampled:
+            data = self.transcript_counts_flatten_subsampled
         else:
-            data = self.data
+            data = self.transcript_counts_flatten
         datat = numpy.transpose(data)
-        for l in list(self.genes):
+        for l in list(self.gene_names):
             p += l + '\t'
         g.write(p[:-1] + '\n')
-        for n, m in enumerate(list(self.which_samples)):
+        for n, m in enumerate(list(self.which_cells)):
             if m:
                 p = 'D' + str(self.long[n]) + '_' + self.batch[n] + '_' + str(n) + '\t' + str(self.long[n]) \
                     + '\t' + self.batch[n] + '\t'
                 for t in list(datat[n]):
-                    if self.subsampled:
-                        cv = self.target_subsample
+                    if self.is_subsampled:
+                        cv = self.target_number_of_transcripts
                     else:
-                        cv = self.totaltran[n]
+                        cv = self.transcript_total_counts_flatten[n]
                     p += str(numpy.log2(1.0+1000000.0*t/float(cv))) + '\t'
                 g.write(p[:-1] + '\n')
         g.close()
-        if self.subsampled:
+        if self.is_subsampled:
             g = open(name + '.no_subsampling.tsv', 'w')
             p = 'ID\ttimepoint\tlib\t'
-            for l in list(self.genes):
+            for l in list(self.gene_names):
                 p += l + '\t'
             g.write(p[:-1] + '\n')
-            for n, m in enumerate(list(self.which_samples)):
+            for n, m in enumerate(list(self.which_cells)):
                 if m:
                     p = 'D' + str(self.long[n]) + '_' + self.batch[n] + '_' + str(n) + '\t' + str(self.long[n]) \
                         + '\t' + self.batch[n] + '\t'
-                    for t in list(numpy.transpose(self.data)[n]):
-                        if self.subsampled:
-                            cv = self.target_subsample
+                    for t in list(numpy.transpose(self.transcript_counts_flatten)[n]):
+                        if self.is_subsampled:
+                            cv = self.target_number_of_transcripts
                         else:
-                            cv = self.totaltran[n]
+                            cv = self.transcript_total_counts_flatten[n]
                         p += str(numpy.log2(1.0+1000000.0*t/float(cv))) + '\t'
                     g.write(p[:-1] + '\n')
             g.close()
         g = open(name + '.mapper.tsv', 'w')
         p = ''
-        for m in list(self.genes[self.which_genes]):
+        for m in list(self.gene_names[self.which_genes]):
             p += m + '\t'
         g.write(p[:-1] + '\n')
-        for n, m in enumerate(list(self.which_samples)):
+        for n, m in enumerate(list(self.which_cells)):
             if m:
                 p = ''
                 for t in list(datat[n, self.which_genes]):
-                    if self.subsampled:
-                        cv = self.target_subsample
+                    if self.is_subsampled:
+                        cv = self.target_number_of_transcripts
                     else:
-                        cv = self.totaltran[n]
+                        cv = self.transcript_total_counts_flatten[n]
                     p += str(numpy.log2(1.0+1000000.0*t/float(cv))) + '\t'
                 g.write(p[:-1] + '\n')
         g.close()
