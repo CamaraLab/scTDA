@@ -16,11 +16,11 @@ For optimal visualization results it is strongly recommended to have Graphviz to
 
 ## Docker
 
-A Docker container with a fully configured jupyter notebook envirnoment, graphviz, and scTDA can be obtained running:
+A Docker container with a fully configured jupyter notebook environment and scTDA can be obtained running:
 
 `docker pull pcamara/sctda`
 
-To run the container use:
+To start the image use:
 
 `docker run -it -v /path/to/your/working/directory:/home/jovyan/work --rm -p 8888:8888 pcamara/sctda`
 
