@@ -680,34 +680,36 @@ class Preprocess(object):
                     filterYlow != 0.0 or filterYhigh != 1.0e8) and self.spike_prefix == '_null_':
             print 'No spike-ins selected'
         else:
-            for n, (m, c) in enumerate(zip(list(self.transcript_total_counts_flatten), self.complexity)):
-                if m >= min_transcripts and c >= min_cdr:
-                    self.which_cells[n] = True & self.which_cells_subsampled[n]
-                    self.which_cells_backup[n] = True
+            for cell_id, (cell_total_counts, cell_complexity) in \
+                    enumerate(zip(list(self.transcript_total_counts_flatten), self.complexity)):
+                if cell_total_counts >= min_transcripts and cell_complexity >= min_cdr:
+                    self.which_cells[cell_id] = True & self.which_cells_subsampled[cell_id]
+                    self.which_cells_backup[cell_id] = True
                 else:
-                    self.which_cells[n] = False
-                    self.which_cells_backup[n] = False
+                    self.which_cells[cell_id] = False
+                    self.which_cells_backup[cell_id] = False
             if self.spike_prefix != '_null_':
-                n1 = 0
-                for n, f in enumerate(self.file_names):
-                    for nok in range(self.number_of_cells_in_file[n]):
-                        if (filterXhigh > self.spike_transcript_counts_normalized_means_per_cell_dict[f][nok] > filterXlow and
-                                        filterYlow < self.spike_counts_ratio[f][nok] < filterYhigh):
-                            self.which_cells[n1] &= True
-                            self.which_cells_backup[n1] &= True
+                cell_counter = 0
+                for cell_id, f in enumerate(self.file_names):
+                    for nok in range(self.number_of_cells_in_file[cell_id]):
+                        if (filterXhigh > self.spike_transcript_counts_normalized_means_per_cell_dict[f][nok]
+                                > filterXlow and filterYlow < self.spike_counts_ratio[f][nok] < filterYhigh):
+                            self.which_cells[cell_counter] &= True
+                            self.which_cells_backup[cell_counter] &= True
                         else:
-                            self.which_cells[n1] = False
-                            self.which_cells_backup[n1] = False
-                        n1 += 1
-                col = []
-                for m in self.which_cells:
-                    if m:
-                        col.append('r.')
+                            self.which_cells[cell_counter] = False
+                            self.which_cells_backup[cell_counter] = False
+                        cell_counter += 1
+                colors = []
+                for cell_total_counts in self.which_cells:
+                    if cell_total_counts:
+                        colors.append('r.')
                     else:
-                        col.append('b.')
+                        colors.append('b.')
                 pylab.figure()
-                for n in range(len(self.spike_transcript_counts_normalized_means_per_cell_flatten)):
-                    pylab.plot(self.spike_transcript_counts_normalized_means_per_cell_flatten[n], self.spike_counts_ratio_flatten[n], col[n], alpha=0.6)
+                for cell_id in range(len(self.spike_transcript_counts_normalized_means_per_cell_flatten)):
+                    pylab.plot(self.spike_transcript_counts_normalized_means_per_cell_flatten[cell_id],
+                               self.spike_counts_ratio_flatten[cell_id], colors[cell_id], alpha=0.6)
                 pylab.yscale('log')
                 pylab.xlabel('spike-in reads / average spike-in reads library')
                 pylab.ylabel('spike-in reads / uniquely mapped reads')
@@ -733,62 +735,62 @@ class Preprocess(object):
         created with the same format, containing non-subsampled data. 'name.mapper.tsv' contains log_2(1+TPM)
         expression values for each gene in self.which_genes.
         """
-        g = open(name + '.all.tsv', 'w')
-        p = 'ID\ttimepoint\tlib\t'
+        file = open(name + '.all.tsv', 'w')
+        line = 'ID\ttimepoint\tlib\t'
         if self.is_subsampled:
             data = self.transcript_counts_flatten_subsampled
         else:
             data = self.transcript_counts_flatten
-        datat = numpy.transpose(data)
-        for l in list(self.gene_names):
-            p += l + '\t'
-        g.write(p[:-1] + '\n')
-        for n, m in enumerate(list(self.which_cells)):
-            if m:
-                p = 'D' + str(self.long[n]) + '_' + self.batch[n] + '_' + str(n) + '\t' + str(self.long[n]) \
-                    + '\t' + self.batch[n] + '\t'
-                for t in list(datat[n]):
+        data_transposed = numpy.transpose(data)
+        for gene in list(self.gene_names):
+            line += gene + '\t'
+        file.write(line[:-1] + '\n')
+        for cell_id, is_cell_included in enumerate(list(self.which_cells)):
+            if is_cell_included:
+                line = 'D' + str(self.long[cell_id]) + '_' + self.batch[cell_id] + '_' + str(cell_id) + '\t' \
+                       + str(self.long[cell_id]) + '\t' + self.batch[cell_id] + '\t'
+                for transcript_count in list(data_transposed[cell_id]):
                     if self.is_subsampled:
-                        cv = self.target_number_of_transcripts
+                        total_transcript_count = self.target_number_of_transcripts
                     else:
-                        cv = self.transcript_total_counts_flatten[n]
-                    p += str(numpy.log2(1.0+1000000.0*t/float(cv))) + '\t'
-                g.write(p[:-1] + '\n')
-        g.close()
+                        total_transcript_count = self.transcript_total_counts_flatten[cell_id]
+                    line += str(numpy.log2(1.0+1000000.0*transcript_count/float(total_transcript_count))) + '\t'
+                file.write(line[:-1] + '\n')
+        file.close()
         if self.is_subsampled:
-            g = open(name + '.no_subsampling.tsv', 'w')
-            p = 'ID\ttimepoint\tlib\t'
-            for l in list(self.gene_names):
-                p += l + '\t'
-            g.write(p[:-1] + '\n')
-            for n, m in enumerate(list(self.which_cells)):
-                if m:
-                    p = 'D' + str(self.long[n]) + '_' + self.batch[n] + '_' + str(n) + '\t' + str(self.long[n]) \
-                        + '\t' + self.batch[n] + '\t'
-                    for t in list(numpy.transpose(self.transcript_counts_flatten)[n]):
+            file = open(name + '.no_subsampling.tsv', 'w')
+            line = 'ID\ttimepoint\tlib\t'
+            for gene in list(self.gene_names):
+                line += gene + '\t'
+            file.write(line[:-1] + '\n')
+            for cell_id, is_cell_included in enumerate(list(self.which_cells)):
+                if is_cell_included:
+                    line = 'D' + str(self.long[cell_id]) + '_' + self.batch[cell_id] + '_' + str(cell_id) + '\t' \
+                           + str(self.long[cell_id]) + '\t' + self.batch[cell_id] + '\t'
+                    for transcript_count in list(numpy.transpose(self.transcript_counts_flatten)[cell_id]):
                         if self.is_subsampled:
-                            cv = self.target_number_of_transcripts
+                            total_transcript_count = self.target_number_of_transcripts
                         else:
-                            cv = self.transcript_total_counts_flatten[n]
-                        p += str(numpy.log2(1.0+1000000.0*t/float(cv))) + '\t'
-                    g.write(p[:-1] + '\n')
-            g.close()
-        g = open(name + '.mapper.tsv', 'w')
-        p = ''
-        for m in list(self.gene_names[self.which_genes]):
-            p += m + '\t'
-        g.write(p[:-1] + '\n')
-        for n, m in enumerate(list(self.which_cells)):
-            if m:
-                p = ''
-                for t in list(datat[n, self.which_genes]):
+                            total_transcript_count = self.transcript_total_counts_flatten[cell_id]
+                        line += str(numpy.log2(1.0+1000000.0*transcript_count/float(total_transcript_count))) + '\t'
+                    file.write(line[:-1] + '\n')
+            file.close()
+        file = open(name + '.mapper.tsv', 'w')
+        line = ''
+        for is_cell_included in list(self.gene_names[self.which_genes]):
+            line += is_cell_included + '\t'
+        file.write(line[:-1] + '\n')
+        for cell_id, is_cell_included in enumerate(list(self.which_cells)):
+            if is_cell_included:
+                line = ''
+                for transcript_count in list(data_transposed[cell_id, self.which_genes]):
                     if self.is_subsampled:
-                        cv = self.target_number_of_transcripts
+                        total_transcript_count = self.target_number_of_transcripts
                     else:
-                        cv = self.transcript_total_counts_flatten[n]
-                    p += str(numpy.log2(1.0+1000000.0*t/float(cv))) + '\t'
-                g.write(p[:-1] + '\n')
-        g.close()
+                        total_transcript_count = self.transcript_total_counts_flatten[cell_id]
+                    line += str(numpy.log2(1.0+1000000.0*transcript_count/float(total_transcript_count))) + '\t'
+                file.write(line[:-1] + '\n')
+        file.close()
 
 
 class TopologicalRepresentation(object):
@@ -803,17 +805,17 @@ class TopologicalRepresentation(object):
         passed directly to sklearn.manifold.MDS or sklearn.decomposition.PCA. It plots the low-dimensional projection
         of the data.
         """
-        self.df = pandas.read_table(table + '.mapper.tsv')
+        self.data_frame = pandas.read_table(table + '.mapper.tsv')
         if lens == 'neighbor':
-            self.lens_data_mds = sakmapper.apply_lens(self.df, lens=lens, **kwargs)
+            self.lens_data_mds = sakmapper.apply_lens(self.data_frame, lens=lens, **kwargs)
         elif lens == 'mds':
             if precomputed:
-                self.lens_data_mds = sakmapper.apply_lens(self.df, lens=lens, metric=metric,
+                self.lens_data_mds = sakmapper.apply_lens(self.data_frame, lens=lens, metric=metric,
                                                           dissimilarity='precomputed', **kwargs)
             else:
-                self.lens_data_mds = sakmapper.apply_lens(self.df, lens=lens, metric=metric, **kwargs)
+                self.lens_data_mds = sakmapper.apply_lens(self.data_frame, lens=lens, metric=metric, **kwargs)
         else:
-            self.lens_data_mds = sakmapper.apply_lens(self.df, lens=lens, **kwargs)
+            self.lens_data_mds = sakmapper.apply_lens(self.data_frame, lens=lens, **kwargs)
         pylab.figure()
         pylab.scatter(numpy.array(self.lens_data_mds)[:, 0], numpy.array(self.lens_data_mds)[:, 1], s=10, alpha=0.7)
         pylab.show()
@@ -828,16 +830,16 @@ class TopologicalRepresentation(object):
         number of clusters to be considered within each patch. The topological representation is stored in the files
         'name.gexf' and 'name.json'. It returns a dictionary with the patches.
         """
-        G, all_clusters, patches = sakmapper.mapper_graph(self.df, lens_data=self.lens_data_mds,
+        network, clusters, patches = sakmapper.mapper_graph(self.data_frame, lens_data=self.lens_data_mds,
                                                           resolution=resolution,
                                                           gain=gain, equalize=equalize, clust=cluster,
                                                           stat=statistics, max_K=max_K)
-        dic = {}
-        for n, rs in enumerate(all_clusters):
-            dic[str(n)] = map(lambda x: int(x), rs)
-        with open(name + '.json', 'wb') as handle3:
-            json.dump(dic, handle3)
-        networkx.write_gexf(G, name + '.gexf')
+        clusters_dictionary = {}
+        for cluster_id, cluster in enumerate(clusters):
+            clusters_dictionary[str(cluster_id)] = map(lambda x: int(x), cluster)
+        with open(name + '.json', 'wb') as json_file:
+            json.dump(clusters_dictionary, json_file)
+        networkx.write_gexf(network, name + '.gexf')
         return patches
 
 
