@@ -2035,5 +2035,5 @@ class RootedGraph(UnrootedGraph):
                 g[m].append(n)
             return g
         elif method == 'js':
-            return UnrootedGraph.cellular_subpopulations(self, min_dispersion, threshold=threshold, min_cells=min_cells,
+            return UnrootedGraph.cellular_subpopulations(self, threshold=threshold, min_cells=min_cells,
                                                          clus_thres=clus_thres)
