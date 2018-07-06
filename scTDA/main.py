@@ -1210,7 +1210,7 @@ class UnrootedGraph(object):
         else:
             pg = self.g
             pos = self.posg
-        fig = pylab.figure(dpi=dpi, figsize=None)
+        fig = pylab.figure(dpi=dpi, figsize=figsize)
         networkx.draw_networkx_edges(pg, pos, width=1, alpha=a)
         sizes = numpy.array([len(self.dic[node]) for node in pg.nodes()])*weight
         values = []
