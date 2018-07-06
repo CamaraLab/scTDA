@@ -1190,7 +1190,7 @@ class UnrootedGraph(object):
         return numpy.array(mat)
 
     def draw(self, color, connected=True, labels=False, ccmap='jet', weight=8.0, save='', ignore_log=False,
-             table=False, axis=[], a=0.4):
+             table=False, axis=[], a=0.4, dpi=None, figsize=None):
         """
         Displays topological representation of the data colored according to the expression of a gene, genes or
         list of genes, specified by argument 'color'. This can be a gene or a list of one, two or three genes or lists
@@ -1210,7 +1210,7 @@ class UnrootedGraph(object):
         else:
             pg = self.g
             pos = self.posg
-        fig = pylab.figure()
+        fig = pylab.figure(dpi=dpi, figsize=None)
         networkx.draw_networkx_edges(pg, pos, width=1, alpha=a)
         sizes = numpy.array([len(self.dic[node]) for node in pg.nodes()])*weight
         values = []
