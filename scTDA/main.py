@@ -1190,7 +1190,7 @@ class UnrootedGraph(object):
         return numpy.array(mat)
 
     def draw(self, color, connected=True, labels=False, ccmap='jet', weight=8.0, save='', ignore_log=False,
-             table=False, axis=[], a=0.4, dpi=None, figsize=None):
+             table=False, axis=[], a=0.4, dpi=None, figsize=None, lw=1.0):
         """
         Displays topological representation of the data colored according to the expression of a gene, genes or
         list of genes, specified by argument 'color'. This can be a gene or a list of one, two or three genes or lists
@@ -1219,7 +1219,8 @@ class UnrootedGraph(object):
         if type(color) == list and len(color) == 1:
             coloru, tol = self.get_gene(color[0], ignore_log=ignore_log, con=connected)
             values = [coloru[node] for node in pg.nodes()]
-            nol = networkx.draw_networkx_nodes(pg, pos, node_color=values, node_size=sizes, cmap=pylab.get_cmap(ccmap))
+            nol = networkx.draw_networkx_nodes(pg, pos, node_color=values, node_size=sizes, cmap=pylab.get_cmap(ccmap),
+                                              linewidths=lw)
             nol.set_edgecolor('k')
             polca = values
         elif type(color) == list and len(color) == 2:
@@ -1233,7 +1234,7 @@ class UnrootedGraph(object):
                 bmax = 1.0
             values = [(1.0-colorb[node]/bmax, max(1.0-(colorr[node]/rmax+colorb[node]/bmax), 0.0),
                        1.0-colorr[node]/rmax) for node in pg.nodes()]
-            nol = networkx.draw_networkx_nodes(pg, pos, node_color=values, node_size=sizes)
+            nol = networkx.draw_networkx_nodes(pg, pos, node_color=values, node_size=sizes, linewidths=lw)
             nol.set_edgecolor('k')
             polca = [(colorr[node], colorb[node]) for node in pg.nodes()]
         elif type(color) == list and len(color) == 3:
@@ -1252,7 +1253,7 @@ class UnrootedGraph(object):
             values = [(max(1.0-(colorg[node]/gmax+colorb[node]/bmax), 0.0),
                        max(1.0-(colorr[node]/rmax+colorb[node]/bmax), 0.0),
                        max(1.0-(colorr[node]/rmax+colorg[node]/gmax), 0.0)) for node in pg.nodes()]
-            nol = networkx.draw_networkx_nodes(pg, pos, node_color=values, node_size=sizes)
+            nol = networkx.draw_networkx_nodes(pg, pos, node_color=values, node_size=sizes, linewidths=lw)
             nol.set_edgecolor('k')
             polca = [(colorr[node], colorg[node], colorb[node]) for node in pg.nodes()]
         elif type(color) == list and len(color) == 4:
@@ -1275,7 +1276,7 @@ class UnrootedGraph(object):
             values = [(max(1.0-(colorg[node]/gmax+colorb[node]/bmax), 0.0),
                        max(1.0-(colorr[node]/rmax+colorb[node]/bmax+0.36*colord[node]/dmax), 0.0),
                        max(1.0-(colorr[node]/rmax+colorg[node]/gmax+colord[node]/dmax), 0.0)) for node in pg.nodes()]
-            nol = networkx.draw_networkx_nodes(pg, pos, node_color=values, node_size=sizes)
+            nol = networkx.draw_networkx_nodes(pg, pos, node_color=values, node_size=sizes, linewidths=lw)
             nol.set_edgecolor('k')
             polca = [(colorr[node], colorg[node], colorb[node], colord[node]) for node in pg.nodes()]
         if labels:
